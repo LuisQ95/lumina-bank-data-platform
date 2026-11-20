@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lumina-bank-data-platform"
+version = "1.0.0"
+description = "Plataforma de datos de Lumina Bank en Google Cloud: ingesta, Medallion en BigQuery, streaming en Dataflow con Memorystore y API de exposición."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "google-cloud-bigquery>=3.40",
+    "google-cloud-pubsub>=2.40",
+    "google-cloud-storage>=3.0",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+spark = ["pyspark==3.5.5"]
+dataflow = ["apache-beam[gcp]==2.77.0", "redis==8.1.0"]
+dev = ["pytest>=8", "fakeredis>=2.20", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"lumina.batch" = ["sql/*.sql"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q -p no:cacheprovider"

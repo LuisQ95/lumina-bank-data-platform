@@ -1,0 +1,58 @@
+﻿# redis-cli ejecutado por SSH en la VM lumina-redis-cli (us-central1-a) contra Memorystore lumina-redis 10.167.207.187:6379
+# Fecha: 2026-11-11 20:44 hora Lima (2026-11-12 01:44 UTC). Comando: bash redis_evidencia.sh 10.167.207.187
+# Estado escrito por el job de Dataflow lumina-stream-redis (run_id df202611120128), unos 5 minutos después de publicar 3,121 transacciones.
+
+== PING ==
+PONG
+== INFO server (versión) ==
+redis_version:7.2.4
+uptime_in_seconds:650
+== INFO clients ==
+connected_clients:6
+== INFO keyspace ==
+# Keyspace
+db0:keys=12303,expires=12301,avg_ttl=43471067
+== DBSIZE ==
+12303
+== conteo de claves por prefijo ==
+dedup:      3060
+vel:        2998
+limites:    2998
+gps:        2998
+atm_health: 247
+== HGETALL limites:LUM-1991827 ==
+acumulado_dia_pen
+186.42
+limite_diario_pen
+12000.0
+vel_1m
+1
+vel_5m
+1
+ultima_decision
+APROBADA
+== TTL limites:LUM-1991827 (segundos) ==
+86162
+== ZRANGE vel:LUM-4921131 (ventana de velocidad, con marca de tiempo) ==
+TX-0836352:b9e6c0
+1794447597680
+== GET gps:LUM-3095755 ==
+Santiago de Surco
+== HGETALL atm_health:ATM-0111 ==
+lectura_id
+IOT-0000022
+id_atm
+ATM-0111
+id_distrito
+Lince
+pct_efectivo
+84.3
+temperatura_c
+33.0
+== SCARD atm_alertas ==
+73
+== HGETALL clics:resumen ==
+total
+300
+requieren_asesor
+117

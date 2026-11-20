@@ -1,0 +1,62 @@
+{
+  "generado_utc": "2026-11-12T01:42:05.902182+00:00",
+  "despliegue": {
+    "inicio_utc": "2026-11-12T01:28:30Z",
+    "redis": "lumina-redis",
+    "vm": "lumina-redis-cli",
+    "job_nombre": "lumina-stream-redis",
+    "redis_host": "10.167.207.187",
+    "redis_port": 6379,
+    "job_id": "2026-11-11_17_35_02-11332378875092427656",
+    "run_id": "df202611120128",
+    "nota": "Reconstruido a mano: el script no dejó el archivo. run_id derivado de la hora de inicio; confirmar con SELECT DISTINCT run_id."
+  },
+  "dataflow_job": {
+    "id": "2026-11-11_17_35_02-11332378875092427656",
+    "name": "lumina-stream-redis",
+    "currentState": "JOB_STATE_RUNNING",
+    "createTime": "2026-11-12T01:35:04.357843Z",
+    "type": "JOB_TYPE_STREAMING"
+  },
+  "memorystore": {
+    "name": "projects/lumina-bank-utec-2026/locations/us-central1/instances/lumina-redis",
+    "tier": "BASIC",
+    "memorySizeGb": 1,
+    "redisVersion": "REDIS_7_2",
+    "state": "READY",
+    "host": "10.167.207.187",
+    "port": 6379,
+    "authorizedNetwork": "projects/lumina-bank-utec-2026/global/networks/default",
+    "connectMode": "DIRECT_PEERING"
+  },
+  "redis_cli": [
+    "PONG",
+    "db0:keys=12303,expires=12301,avg_ttl=43856990",
+    "total",
+    "300",
+    "requieren_asesor",
+    "117",
+    "73"
+  ],
+  "bigquery": {
+    "decisiones": {
+      "decisiones": 3060,
+      "tx_unicas": 3060,
+      "aprobadas": 2995,
+      "rechazadas_limite": 5,
+      "revision_fraude": 60,
+      "saltos_gps": 60,
+      "e2e_p50_ms": 3109,
+      "e2e_p95_ms": 15223,
+      "e2e_p99_ms": 16173,
+      "e2e_max_ms": 19380,
+      "redis_p50_ms": 21.079,
+      "redis_p99_ms": 81.342
+    },
+    "agregado_1m": {
+      "filas": 36,
+      "tx": 3060
+    },
+    "rechazos": {}
+  }
+}

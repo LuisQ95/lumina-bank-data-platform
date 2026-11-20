@@ -1,0 +1,17 @@
+{
+  "ejecutado": "2026-11-05, suscripciones temporales eliminadas al terminar",
+  "objetivo": "Explicar el retraso inicial del consumidor. Pruebas desde Lima hacia us-central1.",
+  "a_20_msg_s": [
+    {"modo": "Pull, endpoint regional", "n": "300/300", "p50_ms": 1539, "p95_ms": 2822, "p99_ms": 23708},
+    {"modo": "Pull, endpoint global", "n": "300/300", "p50_ms": 1001, "p95_ms": 1825, "p99_ms": 1979},
+    {"modo": "StreamingPull, endpoint global", "n": "300/300", "p50_ms": 1861, "p95_ms": 2037, "p99_ms": 2077},
+    {"modo": "StreamingPull, endpoint regional", "n": "143/300", "p50_ms": 41434, "p95_ms": 52650, "p99_ms": 53581}
+  ],
+  "a_50_msg_s": [
+    {"modo": "Suscripción ordenada, 1 stream", "n": "1200/1200", "p50_ms": 18745, "p95_ms": 33860, "p99_ms": 35183},
+    {"modo": "Suscripción sin orden, 1 stream", "n": "1200/1200", "p50_ms": 18049, "p95_ms": 32553, "p99_ms": 33868},
+    {"modo": "Suscripción ordenada, 4 streams", "n": "1200/1200", "p50_ms": 2218, "p95_ms": 4855, "p99_ms": 5402},
+    {"modo": "Ordenada, 1 stream, publicador global", "n": "1200/1200", "p50_ms": 18028, "p95_ms": 33222, "p99_ms": 34560}
+  ],
+  "conclusion": "El orden no causa el retraso. Causas: endpoint regional en el suscriptor y límite cercano a 22 msg/s por stream. Solución: endpoint global y 8 streams paralelos."
+}

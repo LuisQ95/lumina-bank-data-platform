@@ -1,0 +1,67 @@
+{
+  "ejecutado_utc": "2026-11-06T04:13:22.967727+00:00",
+  "run_id": "71bac5dafc36",
+  "suscripciones": {
+    "tx": "transacciones-sub-stream",
+    "clicks": "clicks-sub-stream",
+    "atm": "atm-sub-stream",
+    "geo": "geo-sub-stream"
+  },
+  "entrega_ordenada_activa": true,
+  "tasa_objetivo_tx_s": 50,
+  "streams_paralelos_tx": 8,
+  "tx_publicadas": 3121,
+  "segundos_publicacion": 62.63,
+  "tasa_real_tx_s": 49.8,
+  "trafico_prueba": {
+    "rafagas": 60,
+    "reintentos_duplicados": 61,
+    "fraudes_etiquetados_en_muestra": 60
+  },
+  "conteos": {
+    "geo_recibidos": 2998,
+    "atm_recibidos": 400,
+    "clicks_recibidos": 300,
+    "clicks_requieren_asesor": 117,
+    "tx_recibidas": 3121,
+    "APROBADA": 2995,
+    "REVISION_FRAUDE": 60,
+    "saltos_gps": 60,
+    "rafagas_vel_1m_3_o_mas": 40,
+    "duplicados_filtrados": 61,
+    "RECHAZADA_LIMITE": 5
+  },
+  "tx_unicas_decididas": 3060,
+  "fuera_de_orden_por_cliente": 0,
+  "alertas_atm": 73,
+  "latencia_e2e_ms": {
+    "n": 3060,
+    "min": 251.0,
+    "p50": 278.0,
+    "p95": 434.05,
+    "p99": 962.41,
+    "max": 1474.0
+  },
+  "latencia_proceso_ms": {
+    "n": 3060,
+    "min": 0.02,
+    "p50": 0.07,
+    "p95": 0.14,
+    "p99": 0.28,
+    "max": 1.39
+  },
+  "sink_bigquery": {
+    "tabla": "lumina-bank-utec-2026.silver_banco.stream_decisiones",
+    "filas": 3060,
+    "microlotes": 8
+  },
+  "nosql_simulado": {
+    "filas_bigtable_local": 3060,
+    "claves_redis_local": 3245,
+    "archivos": [
+      "C:\\Users\\USUARIO\\OneDrive\\Maestria UTEC\\0_Maestria UTEC\\Big Data\\prototipo_gcp\\data\\nosql_state\\bigtable_perfil_cliente.json",
+      "C:\\Users\\USUARIO\\OneDrive\\Maestria UTEC\\0_Maestria UTEC\\Big Data\\prototipo_gcp\\data\\nosql_state\\redis_cache_snapshot.json"
+    ]
+  },
+  "nota_latencia": "E2E = reloj local al publicar hasta decisión tomada; incluye ida y vuelta Lima-us-central1 por internet. El consumidor es local."
+}

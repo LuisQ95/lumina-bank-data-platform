@@ -1,0 +1,1278 @@
+{
+  "proyecto_gcp": "lumina-bank-utec-2026",
+  "region": "us-central1",
+  "generado_utc": "2026-11-06T04:23:06.552137+00:00",
+  "duracion_seg": 38.59,
+  "costo": {
+    "facturacion_verificada": false,
+    "nota": "Este reporte mide uso frente a cuotas gratuitas; la factura real se confirma en Cloud Billing.",
+    "mb_procesados_pipeline_sql": 4720.79,
+    "cuota_consulta_tib_mes": 1
+  },
+  "cuotas_y_recursos": {
+    "gcs_detalle": {
+      "lumina-bank-landing-lumina-bank-utec-2026": {
+        "objetos": 3,
+        "mb": 4.74
+      },
+      "lumina-bank-bronze-lumina-bank-utec-2026": {
+        "objetos": 12,
+        "mb": 479.45
+      }
+    },
+    "gcs_total_mb": 484.19,
+    "gcs_objetos": 15,
+    "bq_tablas_nativas": 32,
+    "bq_tablas_externas": 5,
+    "bq_vistas": 5,
+    "bq_filas_tablas_nativas": 40022839,
+    "bq_almacenamiento_gib": 6.021,
+    "bq_inventario": [
+      {
+        "dataset": "bronze_banco",
+        "tabla": "cierres_contables_batch_raw",
+        "tipo": "TABLE",
+        "filas": 140160,
+        "mb": 18.4,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "clickstream_app_web_raw",
+        "tipo": "TABLE",
+        "filas": 1000000,
+        "mb": 105.83,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "core_clientes_cdc_raw",
+        "tipo": "VIEW",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "gcs_core_clientes",
+        "tipo": "EXTERNAL",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "gcs_edi_mercado",
+        "tipo": "EXTERNAL",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "gcs_google_trends",
+        "tipo": "EXTERNAL",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "gcs_sec_financials",
+        "tipo": "EXTERNAL",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "gcs_tx_enriquecidas",
+        "tipo": "EXTERNAL",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "geolocalizacion_gps_raw",
+        "tipo": "TABLE",
+        "filas": 1000000,
+        "mb": 89.4,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "telemetria_atms_iot_raw",
+        "tipo": "TABLE",
+        "filas": 500000,
+        "mb": 42.17,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "bronze_banco",
+        "tabla": "tx_paysim_kaggle_raw",
+        "tipo": "TABLE",
+        "filas": 6362620,
+        "mb": 565.37,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "atm_estado_actual",
+        "tipo": "TABLE",
+        "filas": 400,
+        "mb": 0.04,
+        "particion": null,
+        "clustering": [
+          "id_distrito",
+          "id_atm"
+        ]
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "cierres_fx_spark",
+        "tipo": "TABLE",
+        "filas": 140160,
+        "mb": 21.07,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "cln_google_trends",
+        "tipo": "TABLE",
+        "filas": 263,
+        "mb": 0.02,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "cln_sec_financials",
+        "tipo": "TABLE",
+        "filas": 33282,
+        "mb": 3.83,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dim_atm",
+        "tipo": "TABLE",
+        "filas": 400,
+        "mb": 0.06,
+        "particion": null,
+        "clustering": [
+          "id_atm",
+          "id_distrito"
+        ]
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dim_calendario_eventos",
+        "tipo": "TABLE",
+        "filas": 1826,
+        "mb": 0.14,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dim_cliente",
+        "tipo": "TABLE",
+        "filas": 9000000,
+        "mb": 1077.3,
+        "particion": null,
+        "clustering": [
+          "id_cliente",
+          "id_distrito",
+          "id_entidad"
+        ]
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dim_cliente_segura",
+        "tipo": "TABLE",
+        "filas": 9000000,
+        "mb": 1643.78,
+        "particion": null,
+        "clustering": [
+          "id_cliente",
+          "id_distrito",
+          "id_entidad"
+        ]
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dim_distrito",
+        "tipo": "TABLE",
+        "filas": 8,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dim_entidad",
+        "tipo": "TABLE",
+        "filas": 12,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dq_conciliacion",
+        "tipo": "TABLE",
+        "filas": 2,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "dq_resultados",
+        "tipo": "TABLE",
+        "filas": 7,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "ext_edi_mercado",
+        "tipo": "TABLE",
+        "filas": 10956,
+        "mb": 0.91,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "ext_google_trends",
+        "tipo": "TABLE",
+        "filas": 50000,
+        "mb": 3.38,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "ext_sec_financials",
+        "tipo": "TABLE",
+        "filas": 50000,
+        "mb": 6.11,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "fact_transaccion",
+        "tipo": "TABLE",
+        "filas": 6362620,
+        "mb": 875.58,
+        "particion": "timestamp",
+        "clustering": [
+          "id_cliente",
+          "id_distrito"
+        ]
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "fact_transaccion_conformada",
+        "tipo": "TABLE",
+        "filas": 6362620,
+        "mb": 1711.54,
+        "particion": "timestamp",
+        "clustering": [
+          "id_distrito",
+          "id_cliente"
+        ]
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "fx_diario",
+        "tipo": "TABLE",
+        "filas": 1826,
+        "mb": 0.04,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "resumen_entidad_distrito_spark",
+        "tipo": "TABLE",
+        "filas": 96,
+        "mb": 0.01,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "resumen_segmento_distrito_spark",
+        "tipo": "TABLE",
+        "filas": 32,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "sec_benchmark_bancos",
+        "tipo": "TABLE",
+        "filas": 1,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "silver_banco",
+        "tabla": "stream_decisiones",
+        "tipo": "TABLE",
+        "filas": 3060,
+        "mb": 0.47,
+        "particion": "evento_ts",
+        "clustering": [
+          "id_distrito",
+          "decision"
+        ]
+      },
+      {
+        "dataset": "gold_fraude",
+        "tabla": "agg_fraude_distrito_dia",
+        "tipo": "TABLE",
+        "filas": 1200,
+        "mb": 0.11,
+        "particion": "fecha",
+        "clustering": [
+          "id_distrito"
+        ]
+      },
+      {
+        "dataset": "gold_fraude",
+        "tabla": "vw_fraude_tiempo_real_360",
+        "tipo": "VIEW",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "gold_liquidez",
+        "tabla": "plan_liquidez_d1",
+        "tipo": "TABLE",
+        "filas": 192,
+        "mb": 0.02,
+        "particion": null,
+        "clustering": [
+          "id_distrito"
+        ]
+      },
+      {
+        "dataset": "gold_liquidez",
+        "tabla": "vw_plan_diario_liquidez_d1",
+        "tipo": "VIEW",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "gold_operacion",
+        "tabla": "agg_experiencia_digital",
+        "tipo": "TABLE",
+        "filas": 72,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "gold_operacion",
+        "tabla": "kpi_operacion_vs_sec",
+        "tipo": "TABLE",
+        "filas": 624,
+        "mb": 0.08,
+        "particion": null,
+        "clustering": [
+          "id_entidad",
+          "producto_financiero"
+        ]
+      },
+      {
+        "dataset": "gold_operacion",
+        "tabla": "salud_atm_cobertura",
+        "tipo": "TABLE",
+        "filas": 400,
+        "mb": 0.05,
+        "particion": null,
+        "clustering": [
+          "id_distrito"
+        ]
+      },
+      {
+        "dataset": "gold_operacion",
+        "tabla": "vw_informes_operativos_vs_sec",
+        "tipo": "VIEW",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      },
+      {
+        "dataset": "gold_operacion",
+        "tabla": "vw_mantenimiento_predictivo_atms",
+        "tipo": "VIEW",
+        "filas": 0,
+        "mb": 0.0,
+        "particion": null,
+        "clustering": null
+      }
+    ],
+    "recursos_por_hora": {
+      "bigtable_instances": "API no habilitada",
+      "compute_vms": 0,
+      "dataproc_clusters": 0,
+      "redis_instances": "API no habilitada"
+    }
+  },
+  "pilar1_spark": {
+    "ejecutado_utc": "2026-11-06T04:10:40.746414+00:00",
+    "motor_ejecutado": "Apache Spark 3.5.5",
+    "master": "local[*]",
+    "manifest_sha256_ok": true,
+    "origen_lote": "gs://lumina-bank-landing-lumina-bank-utec-2026/cierres/",
+    "prueba_negativa_compuerta": {
+      "lote_alterado_bloqueado": true,
+      "mensaje": "COMPUERTA SHA-256 RECHAZADA: esperado 0857548e1677f3f0fb157d"
+    },
+    "sha256_hash": "0857548e1677f3f0fb157d7bc9c3f5ba83f2044187ab555921857460cbb8fc63",
+    "cierres": {
+      "filas_entrada": 140160,
+      "excluidas_por_validacion": 0,
+      "excluidas_por_duplicado": 0,
+      "filas_salida": 140160,
+      "filas_sin_tipo_cambio": 0
+    },
+    "segundos_cierres_x_edi": 17.67,
+    "tx_cruzadas": 6362620,
+    "tx_huerfanas": 0,
+    "segundos_tx_x_clientes": 14.79,
+    "celdas_entidad_distrito": 96,
+    "ajuste_fx_total_usd": 563884411.5,
+    "cargas_bigquery": [
+      {
+        "tabla": "lumina-bank-utec-2026.silver_banco.cierres_fx_spark",
+        "job_id": "6e97bcae-c415-4200-bf7a-618188d2f44d",
+        "filas": 140160
+      },
+      {
+        "tabla": "lumina-bank-utec-2026.silver_banco.resumen_entidad_distrito_spark",
+        "job_id": "8018a494-e545-487e-a4ba-de0dbfc4278c",
+        "filas": 96
+      },
+      {
+        "tabla": "lumina-bank-utec-2026.silver_banco.resumen_segmento_distrito_spark",
+        "job_id": "c2eeda1c-8774-4056-badc-cf3809ab2044",
+        "filas": 32
+      }
+    ],
+    "tiempo_total_seg": 73.52
+  },
+  "pilar1_y_3_sql": {
+    "proyecto_gcp": "lumina-bank-utec-2026",
+    "region": "us-central1",
+    "ejecutado_utc": "2026-11-06T04:15:54.441981+00:00",
+    "duracion_seg": 80.85,
+    "mb_procesados_total": 4720.79,
+    "mb_facturados_total": 4774.0,
+    "pasos": [
+      {
+        "paso": "bronze_ext_clientes",
+        "job_id": "b5050607-7090-405b-8eb4-5fd5bde26166",
+        "segundos": 1.57,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_EXTERNAL_TABLE",
+        "destino": "bronze_banco.gcs_core_clientes",
+        "filas_destino": 0
+      },
+      {
+        "paso": "bronze_ext_transacciones",
+        "job_id": "2da0f12d-eb33-424c-a5d3-6c5f9acd4cf7",
+        "segundos": 1.21,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_EXTERNAL_TABLE",
+        "destino": "bronze_banco.gcs_tx_enriquecidas",
+        "filas_destino": 0
+      },
+      {
+        "paso": "bronze_ext_sec",
+        "job_id": "8cace219-8be5-4218-9b30-bfdac3600ebd",
+        "segundos": 1.19,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_EXTERNAL_TABLE",
+        "destino": "bronze_banco.gcs_sec_financials",
+        "filas_destino": 0
+      },
+      {
+        "paso": "bronze_ext_trends",
+        "job_id": "0dbc2249-6fbe-4ccf-a0b8-6ea98ca98f2d",
+        "segundos": 1.21,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_EXTERNAL_TABLE",
+        "destino": "bronze_banco.gcs_google_trends",
+        "filas_destino": 0
+      },
+      {
+        "paso": "bronze_ext_edi",
+        "job_id": "c41ed00c-5f86-477a-a3fb-eedea593675e",
+        "segundos": 1.16,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_EXTERNAL_TABLE",
+        "destino": "bronze_banco.gcs_edi_mercado",
+        "filas_destino": 0
+      },
+      {
+        "paso": "bronze_vista_cdc_sin_circularidad",
+        "job_id": "21a102bc-7df4-4531-834e-b13645c3da68",
+        "segundos": 1.1,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_VIEW",
+        "destino": "bronze_banco.core_clientes_cdc_raw",
+        "filas_destino": 0
+      },
+      {
+        "paso": "silver_fx_diario",
+        "job_id": "dd7ad697-0729-4d17-bc1a-7fa6030f8f9a",
+        "segundos": 2.17,
+        "mb_procesados": 0.29,
+        "mb_facturados": 10.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.fx_diario",
+        "filas_destino": 1826
+      },
+      {
+        "paso": "silver_sec_limpia",
+        "job_id": "4a981042-df4c-4e7f-9d2c-b1c98cb197bb",
+        "segundos": 2.21,
+        "mb_procesados": 6.11,
+        "mb_facturados": 10.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.cln_sec_financials",
+        "filas_destino": 33282
+      },
+      {
+        "paso": "silver_sec_benchmark",
+        "job_id": "b245c4bf-9ab1-4a36-98bd-b9a9a1ab81d9",
+        "segundos": 1.79,
+        "mb_procesados": 2.69,
+        "mb_facturados": 10.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.sec_benchmark_bancos",
+        "filas_destino": 1
+      },
+      {
+        "paso": "silver_trends_limpia",
+        "job_id": "d58cc01a-25ec-4254-8795-48017883c329",
+        "segundos": 2.14,
+        "mb_procesados": 2.76,
+        "mb_facturados": 10.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.cln_google_trends",
+        "filas_destino": 263
+      },
+      {
+        "paso": "silver_dim_cliente_segura",
+        "job_id": "894520e6-a951-4116-aeb2-be8b0bfe6237",
+        "segundos": 19.49,
+        "mb_procesados": 1077.3,
+        "mb_facturados": 1078.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.dim_cliente_segura",
+        "filas_destino": 9000000
+      },
+      {
+        "paso": "silver_fact_conformada",
+        "job_id": "dacc91f5-2cbc-4580-ac0d-4abdd69e36d9",
+        "segundos": 15.2,
+        "mb_procesados": 1439.68,
+        "mb_facturados": 1440.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.fact_transaccion_conformada",
+        "filas_destino": 6362620
+      },
+      {
+        "paso": "silver_atm_estado_actual",
+        "job_id": "f839c895-dcae-48ac-8ac5-28ed1d87f405",
+        "segundos": 2.11,
+        "mb_procesados": 24.13,
+        "mb_facturados": 25.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.atm_estado_actual",
+        "filas_destino": 400
+      },
+      {
+        "paso": "gold_fraude_agregado",
+        "job_id": "27e06d4b-6883-4cec-aa93-86a854fcb362",
+        "segundos": 2.61,
+        "mb_procesados": 483.16,
+        "mb_facturados": 484.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "gold_fraude.agg_fraude_distrito_dia",
+        "filas_destino": 1200
+      },
+      {
+        "paso": "gold_liquidez_plan_d1",
+        "job_id": "423737aa-5bbb-43d9-b2b9-1e94de5db18e",
+        "segundos": 2.27,
+        "mb_procesados": 281.01,
+        "mb_facturados": 282.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "gold_liquidez.plan_liquidez_d1",
+        "filas_destino": 192
+      },
+      {
+        "paso": "gold_operacion_kpi_vs_sec",
+        "job_id": "e2cf5bcf-e211-4c31-8162-3c13aa8479ce",
+        "segundos": 2.31,
+        "mb_procesados": 12.0,
+        "mb_facturados": 30.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "gold_operacion.kpi_operacion_vs_sec",
+        "filas_destino": 624
+      },
+      {
+        "paso": "gold_operacion_salud_atm",
+        "job_id": "1d1ef184-61bb-4793-ba88-f722fe76231f",
+        "segundos": 2.04,
+        "mb_procesados": 17.21,
+        "mb_facturados": 20.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "gold_operacion.salud_atm_cobertura",
+        "filas_destino": 400
+      },
+      {
+        "paso": "gold_operacion_experiencia_digital",
+        "job_id": "6a59f9b1-966e-4fb9-b38e-c40259e2a069",
+        "segundos": 1.85,
+        "mb_procesados": 43.75,
+        "mb_facturados": 44.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "gold_operacion.agg_experiencia_digital",
+        "filas_destino": 72
+      },
+      {
+        "paso": "gold_vista_fraude",
+        "job_id": "9d650ac8-1970-4876-be42-140f5e5a1eed",
+        "segundos": 0.97,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_VIEW",
+        "destino": "gold_fraude.vw_fraude_tiempo_real_360",
+        "filas_destino": 0
+      },
+      {
+        "paso": "gold_vista_liquidez",
+        "job_id": "8078bf57-3f76-43a9-bd96-80ae181623eb",
+        "segundos": 0.93,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_VIEW",
+        "destino": "gold_liquidez.vw_plan_diario_liquidez_d1",
+        "filas_destino": 0
+      },
+      {
+        "paso": "gold_vista_operacion",
+        "job_id": "7852ab56-fbc9-45bb-b380-2d4cc26d3419",
+        "segundos": 1.01,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_VIEW",
+        "destino": "gold_operacion.vw_informes_operativos_vs_sec",
+        "filas_destino": 0
+      },
+      {
+        "paso": "gold_vista_atm",
+        "job_id": "f50c889f-487e-4d95-acbd-721cddeb503d",
+        "segundos": 0.96,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_VIEW",
+        "destino": "gold_operacion.vw_mantenimiento_predictivo_atms",
+        "filas_destino": 0
+      },
+      {
+        "paso": "calidad_resultados",
+        "job_id": "8bde8727-3f4c-4ed9-8e2d-10a2caf8e0d6",
+        "segundos": 2.09,
+        "mb_procesados": 0.0,
+        "mb_facturados": 0.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.dq_resultados",
+        "filas_destino": 7
+      },
+      {
+        "paso": "calidad_conciliacion",
+        "job_id": "69236fcb-9285-463b-bdb1-2ab29f68aede",
+        "segundos": 3.42,
+        "mb_procesados": 1330.7,
+        "mb_facturados": 1331.0,
+        "tipo": "CREATE_TABLE_AS_SELECT",
+        "destino": "silver_banco.dq_conciliacion",
+        "filas_destino": 2
+      }
+    ],
+    "dq_resultados": [
+      {
+        "fuente": "SEC Financials (Bronze GCS -> cln_sec_financials)",
+        "origen": "real",
+        "filas_entrada": 50000,
+        "filas_salida": 33282,
+        "reglas": "solo USD, solo 10-K/10-Q, duplicado por envío + métrica + periodo",
+        "filas_excluidas": 16718,
+        "pct_excluido": 33.44
+      },
+      {
+        "fuente": "Google Trends (Bronze GCS -> cln_google_trends)",
+        "origen": "real",
+        "filas_entrada": 50000,
+        "filas_salida": 263,
+        "reglas": "score nulo, duplicado por fecha + DMA + término",
+        "filas_excluidas": 49737,
+        "pct_excluido": 99.47
+      },
+      {
+        "fuente": "Cierres contables (Spark -> cierres_fx_spark)",
+        "origen": "sintética",
+        "filas_entrada": 140160,
+        "filas_salida": 140160,
+        "reglas": "compuerta SHA-256, nulos, volumen <= 0, duplicado por llave de negocio",
+        "filas_excluidas": 0,
+        "pct_excluido": 0.0
+      },
+      {
+        "fuente": "Transacciones (Bronze GCS -> fact conformada)",
+        "origen": "sintética",
+        "filas_entrada": 6362620,
+        "filas_salida": 6362620,
+        "reglas": "nulos en llaves, monto negativo, duplicado por id_transaccion",
+        "filas_excluidas": 0,
+        "pct_excluido": 0.0
+      },
+      {
+        "fuente": "Clientes CDC (Bronze GCS -> dim_cliente_segura)",
+        "origen": "sintética",
+        "filas_entrada": 9000000,
+        "filas_salida": 9000000,
+        "reglas": "id nulo, duplicado por id_cliente, formato de máscara DNI",
+        "filas_excluidas": 0,
+        "pct_excluido": 0.0
+      },
+      {
+        "fuente": "EDI mercado (Bronze GCS -> fx_diario)",
+        "origen": "sintética",
+        "filas_entrada": 10956,
+        "filas_salida": 1826,
+        "reglas": "agregación de 6 tickers a 1 fila por fecha",
+        "filas_excluidas": 9130,
+        "pct_excluido": 83.33
+      },
+      {
+        "fuente": "Telemetría ATM (Bronze -> atm_estado_actual)",
+        "origen": "sintética",
+        "filas_entrada": 500000,
+        "filas_salida": 400,
+        "reglas": "última lectura por ATM (reducción intencional, no rechazo)",
+        "filas_excluidas": 499600,
+        "pct_excluido": 99.92
+      }
+    ],
+    "dq_conciliacion": [
+      {
+        "control": "dim_cliente vs dim_cliente_segura",
+        "filas_carga_inicial": 9000000,
+        "filas_pipeline": 9000000,
+        "filas_con_diferencia": 0,
+        "huerfanos_sin_cliente": 0,
+        "sin_tipo_cambio": 0
+      },
+      {
+        "control": "fact_transaccion vs fact_transaccion_conformada",
+        "filas_carga_inicial": 6362620,
+        "filas_pipeline": 6362620,
+        "filas_con_diferencia": 0,
+        "huerfanos_sin_cliente": 0,
+        "sin_tipo_cambio": 0
+      }
+    ]
+  },
+  "pilar2_streaming": {
+    "ejecutado_utc": "2026-11-06T04:13:22.967727+00:00",
+    "run_id": "71bac5dafc36",
+    "suscripciones": {
+      "tx": "transacciones-sub-stream",
+      "clicks": "clicks-sub-stream",
+      "atm": "atm-sub-stream",
+      "geo": "geo-sub-stream"
+    },
+    "entrega_ordenada_activa": true,
+    "tasa_objetivo_tx_s": 50,
+    "streams_paralelos_tx": 8,
+    "tx_publicadas": 3121,
+    "segundos_publicacion": 62.63,
+    "tasa_real_tx_s": 49.8,
+    "trafico_prueba": {
+      "rafagas": 60,
+      "reintentos_duplicados": 61,
+      "fraudes_etiquetados_en_muestra": 60
+    },
+    "conteos": {
+      "geo_recibidos": 2998,
+      "atm_recibidos": 400,
+      "clicks_recibidos": 300,
+      "clicks_requieren_asesor": 117,
+      "tx_recibidas": 3121,
+      "APROBADA": 2995,
+      "REVISION_FRAUDE": 60,
+      "saltos_gps": 60,
+      "rafagas_vel_1m_3_o_mas": 40,
+      "duplicados_filtrados": 61,
+      "RECHAZADA_LIMITE": 5
+    },
+    "tx_unicas_decididas": 3060,
+    "fuera_de_orden_por_cliente": 0,
+    "alertas_atm": 73,
+    "latencia_e2e_ms": {
+      "n": 3060,
+      "min": 251.0,
+      "p50": 278.0,
+      "p95": 434.05,
+      "p99": 962.41,
+      "max": 1474.0
+    },
+    "latencia_proceso_ms": {
+      "n": 3060,
+      "min": 0.02,
+      "p50": 0.07,
+      "p95": 0.14,
+      "p99": 0.28,
+      "max": 1.39
+    },
+    "sink_bigquery": {
+      "tabla": "lumina-bank-utec-2026.silver_banco.stream_decisiones",
+      "filas": 3060,
+      "microlotes": 8
+    },
+    "nosql_simulado": {
+      "filas_bigtable_local": 3060,
+      "claves_redis_local": 3245,
+      "archivos": [
+        "C:\\Users\\USUARIO\\OneDrive\\Maestria UTEC\\0_Maestria UTEC\\Big Data\\prototipo_gcp\\data\\nosql_state\\bigtable_perfil_cliente.json",
+        "C:\\Users\\USUARIO\\OneDrive\\Maestria UTEC\\0_Maestria UTEC\\Big Data\\prototipo_gcp\\data\\nosql_state\\redis_cache_snapshot.json"
+      ]
+    },
+    "nota_latencia": "E2E = reloj local al publicar hasta decisión tomada; incluye ida y vuelta Lima-us-central1 por internet. El consumidor es local."
+  },
+  "consultas_gold": {
+    "V1_fraude_por_distrito": {
+      "job_id": "32bba0f3-9890-4cae-ac1e-f9d3dac6041e",
+      "latencia_ms": 1668.5,
+      "mb_procesados": 0.06,
+      "filas": [
+        {
+          "id_distrito": "La Molina",
+          "tx": 795233,
+          "fraudes_etiquetados": 1066,
+          "alertas_cambio_distrito": 1066,
+          "excesos_limite": 1698,
+          "volumen_usd": 99426758.35
+        },
+        {
+          "id_distrito": "Lince",
+          "tx": 793257,
+          "fraudes_etiquetados": 1082,
+          "alertas_cambio_distrito": 1082,
+          "excesos_limite": 1729,
+          "volumen_usd": 101402615.85
+        },
+        {
+          "id_distrito": "Magdalena del Mar",
+          "tx": 795610,
+          "fraudes_etiquetados": 1053,
+          "alertas_cambio_distrito": 1053,
+          "excesos_limite": 1744,
+          "volumen_usd": 100978434.09
+        },
+        {
+          "id_distrito": "Miraflores",
+          "tx": 795048,
+          "fraudes_etiquetados": 1012,
+          "alertas_cambio_distrito": 1012,
+          "excesos_limite": 1607,
+          "volumen_usd": 97451165.93
+        },
+        {
+          "id_distrito": "San Borja",
+          "tx": 795732,
+          "fraudes_etiquetados": 1013,
+          "alertas_cambio_distrito": 1013,
+          "excesos_limite": 1612,
+          "volumen_usd": 99275791.4
+        },
+        {
+          "id_distrito": "San Isidro",
+          "tx": 795484,
+          "fraudes_etiquetados": 1027,
+          "alertas_cambio_distrito": 1027,
+          "excesos_limite": 1669,
+          "volumen_usd": 99238312.45
+        },
+        {
+          "id_distrito": "San Miguel",
+          "tx": 797000,
+          "fraudes_etiquetados": 1056,
+          "alertas_cambio_distrito": 1056,
+          "excesos_limite": 1690,
+          "volumen_usd": 99621852.9
+        },
+        {
+          "id_distrito": "Santiago de Surco",
+          "tx": 795256,
+          "fraudes_etiquetados": 1053,
+          "alertas_cambio_distrito": 1053,
+          "excesos_limite": 1714,
+          "volumen_usd": 101822171.8
+        }
+      ]
+    },
+    "V2_liquidez_ultimo_plan": {
+      "job_id": "a1956abd-e8f8-4e85-8b4c-c0973a6e4408",
+      "latencia_ms": 1195.3,
+      "mb_procesados": 0.02,
+      "filas": [
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "Magdalena del Mar",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2050534.1,
+          "proyeccion_d1_pen": 2870747.74,
+          "efectivo_en_cajeros_pen": 5852013.51,
+          "dias_cobertura": 2.04,
+          "recarga_sugerida_pen": 0.0
+        },
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "La Molina",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2088160.54,
+          "proyeccion_d1_pen": 2923424.76,
+          "efectivo_en_cajeros_pen": 6322633.18,
+          "dias_cobertura": 2.16,
+          "recarga_sugerida_pen": 0.0
+        },
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "Santiago de Surco",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2079499.02,
+          "proyeccion_d1_pen": 2911298.63,
+          "efectivo_en_cajeros_pen": 6360685.9,
+          "dias_cobertura": 2.18,
+          "recarga_sugerida_pen": 0.0
+        },
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "San Borja",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2083229.62,
+          "proyeccion_d1_pen": 2916521.47,
+          "efectivo_en_cajeros_pen": 6376111.67,
+          "dias_cobertura": 2.19,
+          "recarga_sugerida_pen": 0.0
+        },
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "Lince",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2066217.34,
+          "proyeccion_d1_pen": 2892704.28,
+          "efectivo_en_cajeros_pen": 6653701.4,
+          "dias_cobertura": 2.3,
+          "recarga_sugerida_pen": 0.0
+        },
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "San Miguel",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2068154.54,
+          "proyeccion_d1_pen": 2895416.36,
+          "efectivo_en_cajeros_pen": 6853723.15,
+          "dias_cobertura": 2.37,
+          "recarga_sugerida_pen": 0.0
+        },
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "San Isidro",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2077021.32,
+          "proyeccion_d1_pen": 2907829.85,
+          "efectivo_en_cajeros_pen": 7022922.86,
+          "dias_cobertura": 2.42,
+          "recarga_sugerida_pen": 0.0
+        },
+        {
+          "fecha_plan": "2026-10-25",
+          "id_distrito": "Miraflores",
+          "evento_d1": "Feriado / Feria",
+          "factor_d1": 1.4,
+          "media_movil_7d_pen": 2043833.52,
+          "proyeccion_d1_pen": 2861366.92,
+          "efectivo_en_cajeros_pen": 6948837.59,
+          "dias_cobertura": 2.43,
+          "recarga_sugerida_pen": 0.0
+        }
+      ]
+    },
+    "V2_liquidez_resumen": {
+      "job_id": "7781902c-e366-40f9-83dd-c9f194fe8b28",
+      "latencia_ms": 1141.4,
+      "mb_procesados": 0.0,
+      "filas": [
+        {
+          "planes": 192,
+          "planes_con_recarga": 0,
+          "cobertura_minima_dias": 1.46,
+          "factor_maximo": 1.9
+        }
+      ]
+    },
+    "V3_operacion_vs_sec": {
+      "job_id": "4992490d-3b66-4686-9acd-91b0604e15a9",
+      "latencia_ms": 1164.5,
+      "mb_procesados": 0.05,
+      "filas": [
+        {
+          "producto_financiero": "AHORRO_RENTABLE",
+          "transacciones": 658198875,
+          "ingresos_usd": 558664686.92,
+          "costo_por_tx_usd": 0.0235,
+          "margen_operativo_pct": 97.23,
+          "ajuste_fx_usd": 140927085.19,
+          "sec_margen_neto_mediana_pct": 12.13,
+          "sec_bancos": 16
+        },
+        {
+          "producto_financiero": "MICROCREDITOS_DIGITALES",
+          "transacciones": 657741636,
+          "ingresos_usd": 556686250.76,
+          "costo_por_tx_usd": 0.0235,
+          "margen_operativo_pct": 97.22,
+          "ajuste_fx_usd": 141531453.87,
+          "sec_margen_neto_mediana_pct": 12.13,
+          "sec_bancos": 16
+        },
+        {
+          "producto_financiero": "TARJETAS_CREDITO",
+          "transacciones": 657009980,
+          "ingresos_usd": 556324316.81,
+          "costo_por_tx_usd": 0.0235,
+          "margen_operativo_pct": 97.22,
+          "ajuste_fx_usd": 140497606.74,
+          "sec_margen_neto_mediana_pct": 12.13,
+          "sec_bancos": 16
+        },
+        {
+          "producto_financiero": "TRANSFERENCIAS_INMEDIATAS",
+          "transacciones": 656756732,
+          "ingresos_usd": 558235811.38,
+          "costo_por_tx_usd": 0.0235,
+          "margen_operativo_pct": 97.23,
+          "ajuste_fx_usd": 140928265.7,
+          "sec_margen_neto_mediana_pct": 12.13,
+          "sec_bancos": 16
+        }
+      ]
+    },
+    "V4_salud_atm_y_cobertura": {
+      "job_id": "05a9ea13-53e0-46d5-b627-4dd0fa4be870",
+      "latencia_ms": 1392.7,
+      "mb_procesados": 0.02,
+      "filas": [
+        {
+          "id_distrito": "La Molina",
+          "cajeros": 50,
+          "requieren_atencion": 7,
+          "pct_efectivo": 50.6,
+          "temperatura_c": 26.3,
+          "distancia_km": 4.86,
+          "pct_menos_8km": 89.1
+        },
+        {
+          "id_distrito": "Lince",
+          "cajeros": 50,
+          "requieren_atencion": 10,
+          "pct_efectivo": 53.2,
+          "temperatura_c": 26.4,
+          "distancia_km": 4.87,
+          "pct_menos_8km": 88.9
+        },
+        {
+          "id_distrito": "Magdalena del Mar",
+          "cajeros": 50,
+          "requieren_atencion": 14,
+          "pct_efectivo": 46.8,
+          "temperatura_c": 27.5,
+          "distancia_km": 4.87,
+          "pct_menos_8km": 89.0
+        },
+        {
+          "id_distrito": "Miraflores",
+          "cajeros": 50,
+          "requieren_atencion": 14,
+          "pct_efectivo": 55.6,
+          "temperatura_c": 25.9,
+          "distancia_km": 4.88,
+          "pct_menos_8km": 88.8
+        },
+        {
+          "id_distrito": "San Borja",
+          "cajeros": 50,
+          "requieren_atencion": 8,
+          "pct_efectivo": 51.0,
+          "temperatura_c": 26.1,
+          "distancia_km": 4.88,
+          "pct_menos_8km": 88.9
+        },
+        {
+          "id_distrito": "San Isidro",
+          "cajeros": 50,
+          "requieren_atencion": 10,
+          "pct_efectivo": 56.2,
+          "temperatura_c": 26.0,
+          "distancia_km": 4.87,
+          "pct_menos_8km": 89.0
+        },
+        {
+          "id_distrito": "San Miguel",
+          "cajeros": 50,
+          "requieren_atencion": 7,
+          "pct_efectivo": 54.8,
+          "temperatura_c": 26.3,
+          "distancia_km": 4.87,
+          "pct_menos_8km": 89.1
+        },
+        {
+          "id_distrito": "Santiago de Surco",
+          "cajeros": 50,
+          "requieren_atencion": 12,
+          "pct_efectivo": 50.9,
+          "temperatura_c": 26.7,
+          "distancia_km": 4.87,
+          "pct_menos_8km": 88.9
+        }
+      ]
+    },
+    "Digital_friccion_por_edad": {
+      "job_id": "314acd87-ca33-4d39-af74-b55b8b2d5254",
+      "latencia_ms": 1191.9,
+      "mb_procesados": 0.0,
+      "filas": [
+        {
+          "grupo_edad": "18-29",
+          "eventos": 178845,
+          "pct_requiere_asesor": 16.86
+        },
+        {
+          "grupo_edad": "30-59",
+          "eventos": 447830,
+          "pct_requiere_asesor": 16.66
+        },
+        {
+          "grupo_edad": "60+",
+          "eventos": 373325,
+          "pct_requiere_asesor": 80.02
+        }
+      ]
+    },
+    "Stream_decisiones": {
+      "job_id": "5dd5b325-1e04-4b28-8b76-cbee85c2ec33",
+      "latencia_ms": 1098.3,
+      "mb_procesados": 0.08,
+      "filas": [
+        {
+          "decision": "APROBADA",
+          "es_fraude_etiqueta": 0,
+          "tx": 2995,
+          "latencia_media_ms": 308.8
+        },
+        {
+          "decision": "RECHAZADA_LIMITE",
+          "es_fraude_etiqueta": 0,
+          "tx": 5,
+          "latencia_media_ms": 270.6
+        },
+        {
+          "decision": "REVISION_FRAUDE",
+          "es_fraude_etiqueta": 1,
+          "tx": 60,
+          "latencia_media_ms": 305.9
+        }
+      ]
+    }
+  },
+  "medicion_particion_y_clustering": {
+    "A1_carga_sin_filtro": {
+      "job_id": "fd7ba824-a464-4a36-bae4-0c4211aeb956",
+      "mb_estimados_dry_run": 193.42,
+      "mb_reales": 193.42,
+      "mb_facturados": 194.0
+    },
+    "A2_carga_particion": {
+      "job_id": "f3965bda-5259-4fa9-8cf5-0f5d03dd33b7",
+      "mb_estimados_dry_run": 40.29,
+      "mb_reales": 40.29,
+      "mb_facturados": 41.0
+    },
+    "A3_carga_particion_y_distrito_2a_columna": {
+      "job_id": "144ca8c4-74a0-43b1-bbd2-0f37c1497683",
+      "mb_estimados_dry_run": 40.29,
+      "mb_reales": 40.29,
+      "mb_facturados": 41.0
+    },
+    "B2_conformada_particion": {
+      "job_id": "14275887-0f77-46b7-bb85-c7036157493b",
+      "mb_estimados_dry_run": 40.29,
+      "mb_reales": 40.29,
+      "mb_facturados": 41.0
+    },
+    "B3_conformada_particion_y_distrito_1a_columna": {
+      "job_id": "762f90d2-4264-4bea-b890-5c3127134d0b",
+      "mb_estimados_dry_run": 32.54,
+      "mb_reales": 32.54,
+      "mb_facturados": 33.0
+    }
+  }
+}

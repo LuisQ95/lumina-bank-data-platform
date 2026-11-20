@@ -1,0 +1,30 @@
+# Entornos y caché
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Configuración local y secretos
+.env
+*.json.key
+*-key.json
+credentials*.json
+service-account*.json
+
+# Datos locales (se generan con `python -m lumina.ingesta.generar_fuentes`)
+data/
+
+# Salidas de ejecución que cambian en cada corrida
+reports/estado_despliegue_dataflow.json
+reports/log_*.txt
+reports/*_tmp*.json
+
+# Sistema
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

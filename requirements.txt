@@ -1,0 +1,13 @@
+# Entorno principal (Python 3.11). Equivale a: pip install -e ".[dataflow,dev]"
+# Spark va en un entorno aparte con Java 17: ver requirements-spark.txt
+google-cloud-bigquery>=3.40
+google-cloud-pubsub>=2.40
+google-cloud-storage>=3.0
+pandas>=2.2
+pyarrow>=17
+numpy>=1.26
+apache-beam[gcp]==2.77.0
+redis==8.1.0
+pytest>=8
+fakeredis>=2.20
+ruff>=0.6

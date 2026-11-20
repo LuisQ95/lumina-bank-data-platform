@@ -1,0 +1,333 @@
+{
+  "proyecto_gcp": "lumina-bank-utec-2026",
+  "region": "us-central1",
+  "ejecutado_utc": "2026-11-06T04:15:54.441981+00:00",
+  "duracion_seg": 80.85,
+  "mb_procesados_total": 4720.79,
+  "mb_facturados_total": 4774.0,
+  "pasos": [
+    {
+      "paso": "bronze_ext_clientes",
+      "job_id": "b5050607-7090-405b-8eb4-5fd5bde26166",
+      "segundos": 1.57,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_EXTERNAL_TABLE",
+      "destino": "bronze_banco.gcs_core_clientes",
+      "filas_destino": 0
+    },
+    {
+      "paso": "bronze_ext_transacciones",
+      "job_id": "2da0f12d-eb33-424c-a5d3-6c5f9acd4cf7",
+      "segundos": 1.21,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_EXTERNAL_TABLE",
+      "destino": "bronze_banco.gcs_tx_enriquecidas",
+      "filas_destino": 0
+    },
+    {
+      "paso": "bronze_ext_sec",
+      "job_id": "8cace219-8be5-4218-9b30-bfdac3600ebd",
+      "segundos": 1.19,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_EXTERNAL_TABLE",
+      "destino": "bronze_banco.gcs_sec_financials",
+      "filas_destino": 0
+    },
+    {
+      "paso": "bronze_ext_trends",
+      "job_id": "0dbc2249-6fbe-4ccf-a0b8-6ea98ca98f2d",
+      "segundos": 1.21,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_EXTERNAL_TABLE",
+      "destino": "bronze_banco.gcs_google_trends",
+      "filas_destino": 0
+    },
+    {
+      "paso": "bronze_ext_edi",
+      "job_id": "c41ed00c-5f86-477a-a3fb-eedea593675e",
+      "segundos": 1.16,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_EXTERNAL_TABLE",
+      "destino": "bronze_banco.gcs_edi_mercado",
+      "filas_destino": 0
+    },
+    {
+      "paso": "bronze_vista_cdc_sin_circularidad",
+      "job_id": "21a102bc-7df4-4531-834e-b13645c3da68",
+      "segundos": 1.1,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_VIEW",
+      "destino": "bronze_banco.core_clientes_cdc_raw",
+      "filas_destino": 0
+    },
+    {
+      "paso": "silver_fx_diario",
+      "job_id": "dd7ad697-0729-4d17-bc1a-7fa6030f8f9a",
+      "segundos": 2.17,
+      "mb_procesados": 0.29,
+      "mb_facturados": 10.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.fx_diario",
+      "filas_destino": 1826
+    },
+    {
+      "paso": "silver_sec_limpia",
+      "job_id": "4a981042-df4c-4e7f-9d2c-b1c98cb197bb",
+      "segundos": 2.21,
+      "mb_procesados": 6.11,
+      "mb_facturados": 10.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.cln_sec_financials",
+      "filas_destino": 33282
+    },
+    {
+      "paso": "silver_sec_benchmark",
+      "job_id": "b245c4bf-9ab1-4a36-98bd-b9a9a1ab81d9",
+      "segundos": 1.79,
+      "mb_procesados": 2.69,
+      "mb_facturados": 10.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.sec_benchmark_bancos",
+      "filas_destino": 1
+    },
+    {
+      "paso": "silver_trends_limpia",
+      "job_id": "d58cc01a-25ec-4254-8795-48017883c329",
+      "segundos": 2.14,
+      "mb_procesados": 2.76,
+      "mb_facturados": 10.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.cln_google_trends",
+      "filas_destino": 263
+    },
+    {
+      "paso": "silver_dim_cliente_segura",
+      "job_id": "894520e6-a951-4116-aeb2-be8b0bfe6237",
+      "segundos": 19.49,
+      "mb_procesados": 1077.3,
+      "mb_facturados": 1078.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.dim_cliente_segura",
+      "filas_destino": 9000000
+    },
+    {
+      "paso": "silver_fact_conformada",
+      "job_id": "dacc91f5-2cbc-4580-ac0d-4abdd69e36d9",
+      "segundos": 15.2,
+      "mb_procesados": 1439.68,
+      "mb_facturados": 1440.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.fact_transaccion_conformada",
+      "filas_destino": 6362620
+    },
+    {
+      "paso": "silver_atm_estado_actual",
+      "job_id": "f839c895-dcae-48ac-8ac5-28ed1d87f405",
+      "segundos": 2.11,
+      "mb_procesados": 24.13,
+      "mb_facturados": 25.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.atm_estado_actual",
+      "filas_destino": 400
+    },
+    {
+      "paso": "gold_fraude_agregado",
+      "job_id": "27e06d4b-6883-4cec-aa93-86a854fcb362",
+      "segundos": 2.61,
+      "mb_procesados": 483.16,
+      "mb_facturados": 484.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "gold_fraude.agg_fraude_distrito_dia",
+      "filas_destino": 1200
+    },
+    {
+      "paso": "gold_liquidez_plan_d1",
+      "job_id": "423737aa-5bbb-43d9-b2b9-1e94de5db18e",
+      "segundos": 2.27,
+      "mb_procesados": 281.01,
+      "mb_facturados": 282.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "gold_liquidez.plan_liquidez_d1",
+      "filas_destino": 192
+    },
+    {
+      "paso": "gold_operacion_kpi_vs_sec",
+      "job_id": "e2cf5bcf-e211-4c31-8162-3c13aa8479ce",
+      "segundos": 2.31,
+      "mb_procesados": 12.0,
+      "mb_facturados": 30.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "gold_operacion.kpi_operacion_vs_sec",
+      "filas_destino": 624
+    },
+    {
+      "paso": "gold_operacion_salud_atm",
+      "job_id": "1d1ef184-61bb-4793-ba88-f722fe76231f",
+      "segundos": 2.04,
+      "mb_procesados": 17.21,
+      "mb_facturados": 20.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "gold_operacion.salud_atm_cobertura",
+      "filas_destino": 400
+    },
+    {
+      "paso": "gold_operacion_experiencia_digital",
+      "job_id": "6a59f9b1-966e-4fb9-b38e-c40259e2a069",
+      "segundos": 1.85,
+      "mb_procesados": 43.75,
+      "mb_facturados": 44.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "gold_operacion.agg_experiencia_digital",
+      "filas_destino": 72
+    },
+    {
+      "paso": "gold_vista_fraude",
+      "job_id": "9d650ac8-1970-4876-be42-140f5e5a1eed",
+      "segundos": 0.97,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_VIEW",
+      "destino": "gold_fraude.vw_fraude_tiempo_real_360",
+      "filas_destino": 0
+    },
+    {
+      "paso": "gold_vista_liquidez",
+      "job_id": "8078bf57-3f76-43a9-bd96-80ae181623eb",
+      "segundos": 0.93,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_VIEW",
+      "destino": "gold_liquidez.vw_plan_diario_liquidez_d1",
+      "filas_destino": 0
+    },
+    {
+      "paso": "gold_vista_operacion",
+      "job_id": "7852ab56-fbc9-45bb-b380-2d4cc26d3419",
+      "segundos": 1.01,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_VIEW",
+      "destino": "gold_operacion.vw_informes_operativos_vs_sec",
+      "filas_destino": 0
+    },
+    {
+      "paso": "gold_vista_atm",
+      "job_id": "f50c889f-487e-4d95-acbd-721cddeb503d",
+      "segundos": 0.96,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_VIEW",
+      "destino": "gold_operacion.vw_mantenimiento_predictivo_atms",
+      "filas_destino": 0
+    },
+    {
+      "paso": "calidad_resultados",
+      "job_id": "8bde8727-3f4c-4ed9-8e2d-10a2caf8e0d6",
+      "segundos": 2.09,
+      "mb_procesados": 0.0,
+      "mb_facturados": 0.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.dq_resultados",
+      "filas_destino": 7
+    },
+    {
+      "paso": "calidad_conciliacion",
+      "job_id": "69236fcb-9285-463b-bdb1-2ab29f68aede",
+      "segundos": 3.42,
+      "mb_procesados": 1330.7,
+      "mb_facturados": 1331.0,
+      "tipo": "CREATE_TABLE_AS_SELECT",
+      "destino": "silver_banco.dq_conciliacion",
+      "filas_destino": 2
+    }
+  ],
+  "dq_resultados": [
+    {
+      "fuente": "SEC Financials (Bronze GCS -> cln_sec_financials)",
+      "origen": "real",
+      "filas_entrada": 50000,
+      "filas_salida": 33282,
+      "reglas": "solo USD, solo 10-K/10-Q, duplicado por envío + métrica + periodo",
+      "filas_excluidas": 16718,
+      "pct_excluido": 33.44
+    },
+    {
+      "fuente": "Google Trends (Bronze GCS -> cln_google_trends)",
+      "origen": "real",
+      "filas_entrada": 50000,
+      "filas_salida": 263,
+      "reglas": "score nulo, duplicado por fecha + DMA + término",
+      "filas_excluidas": 49737,
+      "pct_excluido": 99.47
+    },
+    {
+      "fuente": "Cierres contables (Spark -> cierres_fx_spark)",
+      "origen": "sintética",
+      "filas_entrada": 140160,
+      "filas_salida": 140160,
+      "reglas": "compuerta SHA-256, nulos, volumen <= 0, duplicado por llave de negocio",
+      "filas_excluidas": 0,
+      "pct_excluido": 0.0
+    },
+    {
+      "fuente": "Transacciones (Bronze GCS -> fact conformada)",
+      "origen": "sintética",
+      "filas_entrada": 6362620,
+      "filas_salida": 6362620,
+      "reglas": "nulos en llaves, monto negativo, duplicado por id_transaccion",
+      "filas_excluidas": 0,
+      "pct_excluido": 0.0
+    },
+    {
+      "fuente": "Clientes CDC (Bronze GCS -> dim_cliente_segura)",
+      "origen": "sintética",
+      "filas_entrada": 9000000,
+      "filas_salida": 9000000,
+      "reglas": "id nulo, duplicado por id_cliente, formato de máscara DNI",
+      "filas_excluidas": 0,
+      "pct_excluido": 0.0
+    },
+    {
+      "fuente": "EDI mercado (Bronze GCS -> fx_diario)",
+      "origen": "sintética",
+      "filas_entrada": 10956,
+      "filas_salida": 1826,
+      "reglas": "agregación de 6 tickers a 1 fila por fecha",
+      "filas_excluidas": 9130,
+      "pct_excluido": 83.33
+    },
+    {
+      "fuente": "Telemetría ATM (Bronze -> atm_estado_actual)",
+      "origen": "sintética",
+      "filas_entrada": 500000,
+      "filas_salida": 400,
+      "reglas": "última lectura por ATM (reducción intencional, no rechazo)",
+      "filas_excluidas": 499600,
+      "pct_excluido": 99.92
+    }
+  ],
+  "dq_conciliacion": [
+    {
+      "control": "dim_cliente vs dim_cliente_segura",
+      "filas_carga_inicial": 9000000,
+      "filas_pipeline": 9000000,
+      "filas_con_diferencia": 0,
+      "huerfanos_sin_cliente": 0,
+      "sin_tipo_cambio": 0
+    },
+    {
+      "control": "fact_transaccion vs fact_transaccion_conformada",
+      "filas_carga_inicial": 6362620,
+      "filas_pipeline": 6362620,
+      "filas_con_diferencia": 0,
+      "huerfanos_sin_cliente": 0,
+      "sin_tipo_cambio": 0
+    }
+  ]
+}

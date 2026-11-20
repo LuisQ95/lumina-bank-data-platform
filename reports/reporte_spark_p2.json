@@ -1,0 +1,43 @@
+{
+  "ejecutado_utc": "2026-11-06T04:10:40.746414+00:00",
+  "motor_ejecutado": "Apache Spark 3.5.5",
+  "master": "local[*]",
+  "manifest_sha256_ok": true,
+  "origen_lote": "gs://lumina-bank-landing-lumina-bank-utec-2026/cierres/",
+  "prueba_negativa_compuerta": {
+    "lote_alterado_bloqueado": true,
+    "mensaje": "COMPUERTA SHA-256 RECHAZADA: esperado 0857548e1677f3f0fb157d"
+  },
+  "sha256_hash": "0857548e1677f3f0fb157d7bc9c3f5ba83f2044187ab555921857460cbb8fc63",
+  "cierres": {
+    "filas_entrada": 140160,
+    "excluidas_por_validacion": 0,
+    "excluidas_por_duplicado": 0,
+    "filas_salida": 140160,
+    "filas_sin_tipo_cambio": 0
+  },
+  "segundos_cierres_x_edi": 17.67,
+  "tx_cruzadas": 6362620,
+  "tx_huerfanas": 0,
+  "segundos_tx_x_clientes": 14.79,
+  "celdas_entidad_distrito": 96,
+  "ajuste_fx_total_usd": 563884411.5,
+  "cargas_bigquery": [
+    {
+      "tabla": "lumina-bank-utec-2026.silver_banco.cierres_fx_spark",
+      "job_id": "6e97bcae-c415-4200-bf7a-618188d2f44d",
+      "filas": 140160
+    },
+    {
+      "tabla": "lumina-bank-utec-2026.silver_banco.resumen_entidad_distrito_spark",
+      "job_id": "8018a494-e545-487e-a4ba-de0dbfc4278c",
+      "filas": 96
+    },
+    {
+      "tabla": "lumina-bank-utec-2026.silver_banco.resumen_segmento_distrito_spark",
+      "job_id": "c2eeda1c-8774-4056-badc-cf3809ab2044",
+      "filas": 32
+    }
+  ],
+  "tiempo_total_seg": 73.52
+}

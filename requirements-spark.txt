@@ -1,0 +1,10 @@
+# Entorno de Spark (Python 3.11 + Java 17). Con conda:
+#   conda create -n lumina-spark -c conda-forge python=3.11 openjdk=17
+#   conda activate lumina-spark
+#   pip install -r requirements-spark.txt
+pyspark==3.5.5
+google-cloud-bigquery>=3.40
+google-cloud-storage>=3.0
+pandas>=2.2
+pyarrow>=17
+numpy>=1.26

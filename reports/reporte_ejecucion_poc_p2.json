@@ -883,8 +883,8 @@
       "filas_bigtable_local": 3060,
       "claves_redis_local": 3245,
       "archivos": [
-        "C:\\Users\\USUARIO\\OneDrive\\Maestria UTEC\\0_Maestria UTEC\\Big Data\\prototipo_gcp\\data\\nosql_state\\bigtable_perfil_cliente.json",
-        "C:\\Users\\USUARIO\\OneDrive\\Maestria UTEC\\0_Maestria UTEC\\Big Data\\prototipo_gcp\\data\\nosql_state\\redis_cache_snapshot.json"
+        "data/nosql_state/bigtable_perfil_cliente.json",
+        "data/nosql_state/redis_cache_snapshot.json"
       ]
     },
     "nota_latencia": "E2E = reloj local al publicar hasta decisión tomada; incluye ida y vuelta Lima-us-central1 por internet. El consumidor es local."

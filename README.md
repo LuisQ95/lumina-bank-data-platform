@@ -8,6 +8,8 @@ Plataforma analítica para la fusión de 12 entidades financieras (caso DataBank
 
 ![Pipeline de Dataflow con Memorystore](docs/arquitectura/arquitectura_dataflow_memorystore.png)
 
+**Equipo:** Enzo Ochoa, Luis Quispe y Roberto Mendez. Maestría en Ciencia de Datos, UTEC, curso de Big Data (2026).
+
 ## Estructura
 
 ```

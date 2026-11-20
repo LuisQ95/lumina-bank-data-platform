@@ -67,8 +67,8 @@ Paso "6. Construcción y despliegue en Cloud Run (3 a 6 minutos)"
 $variables = "GCP_PROJECT=$PROYECTO,GCP_REGION=$REGION"
 $red = @()
 if ($ConectarMemorystore) {
-    if (-not (Test-Path $ESTADO)) { throw "No existe $ESTADO. Despliega primero Dataflow y Memorystore." }
-    $estado = Get-Content $ESTADO -Raw | ConvertFrom-Json
+    if (-not (Test-Path $RUTA_ESTADO)) { throw "No existe $RUTA_ESTADO. Despliega primero Dataflow y Memorystore." }
+    $estado = Get-Content $RUTA_ESTADO -Raw | ConvertFrom-Json
     $variables += ",REDIS_HOST=$($estado.redis_host),REDIS_PORT=$($estado.redis_port)"
     $red = @("--network=default", "--subnet=default", "--vpc-egress=private-ranges-only")
     Write-Host "Con salida a la VPC hacia Memorystore $($estado.redis_host)"

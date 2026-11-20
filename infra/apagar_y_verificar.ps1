@@ -17,7 +17,7 @@ $ErrorActionPreference = "Continue"
 Paso "0. Desconectando la API de Memorystore"
 $variablesApi = GS run services describe $SERVICIO_API --region=$REGION --format="value(spec.template.spec.containers[0].env)"
 if ($variablesApi -match "REDIS_HOST") {
-    G run services update $SERVICIO_API --region=$REGION --remove-env-vars=REDIS_HOST,REDIS_PORT --clear-network | Out-Null
+    G run services update $SERVICIO_API --region=$REGION "--remove-env-vars=REDIS_HOST,REDIS_PORT" --clear-network | Out-Null
     Write-Host "API sin salida a la VPC."
 } else { Write-Host "La API no estaba conectada." }
 
@@ -58,8 +58,8 @@ if (GS redis instances list --region=$REGION --format="value(name)") { $pendient
 if (GS compute instances list --format="value(name)") { $pendientes += "Compute Engine" }
 if (GS compute disks list --format="value(name)") { $pendientes += "discos" }
 
-if (Test-Path $ESTADO) {
-    $e = Get-Content $ESTADO -Raw | ConvertFrom-Json
+if (Test-Path $RUTA_ESTADO) {
+    $e = Get-Content $RUTA_ESTADO -Raw | ConvertFrom-Json
     $horas = ((Get-Date).ToUniversalTime() - [datetime]::Parse($e.inicio_utc).ToUniversalTime()).TotalHours
     Write-Host ("Tiempo encendido: {0:N2} h. Costo aproximado: USD {1:N2} (confirmar en Billing en 24 a 48 h)." -f $horas, ($horas * $USD_HORA_APROX))
 }

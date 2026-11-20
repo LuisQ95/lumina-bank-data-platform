@@ -229,6 +229,8 @@ La carpeta `reports/` guarda la evidencia de las ejecuciones reales en `lumina-b
 | `reporte_pipeline_sql_p2.json` | 24 jobs, conciliación con 0 diferencias en 15.36 M de filas |
 | `reporte_dataflow_p2.json` | Job de Dataflow con 3,060 decisiones, 61 duplicados filtrados en Redis, operaciones Redis p50 21 ms |
 | `reporte_publicador_dataflow.json` | Tráfico de carga publicado: tasa real, ráfagas y reintentos |
+| `reporte_dataflow_p3.json` | Demo desde la API: 20 transacciones reales, evento → decisión 411 ms p50, Redis 2.1 ms p50, 0 duplicados |
+| `reporte_demo_api_p3.json` | Resumen de la demo: decisiones por tipo, reintento con una sola fila y consultas Gold en 0.77 s |
 | `redis_cli_evidencia.txt` | Conexión activa a Memorystore desde la VM: 12,303 claves escritas por Dataflow |
 | `reporte_ejecucion_poc_p2.json` | Consolidado: consultas Gold, partición y clustering, uso frente a cuotas |
 

@@ -61,7 +61,7 @@ if (-not $AceptoCosto) {
 
 $inicio = (Get-Date).ToUniversalTime()
 $estado = [ordered]@{ inicio_utc = $inicio.ToString("o"); redis = $REDIS; vm = $(if ($SinVM) { $null } else { $VM }); job_nombre = $JOB }
-function Guardar { ($estado | ConvertTo-Json) | Set-Content -Path $script:ESTADO -Encoding UTF8 }
+function Guardar { ($estado | ConvertTo-Json) | Set-Content -Path $RUTA_ESTADO -Encoding UTF8 }
 
 try {
     Paso "6. API de Memorystore"

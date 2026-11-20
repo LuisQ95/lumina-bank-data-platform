@@ -1,6 +1,8 @@
-"""Junta la evidencia del despliegue en reporte_dataflow_p2.json. Ejecutar ANTES de apagar.
+"""Junta la evidencia de un despliegue de Dataflow. Ejecutar ANTES de apagar.
 
-    python -m lumina.ops.reporte_dataflow
+Uso:
+    python -m lumina.ops.reporte_dataflow                                   Guarda reports/reporte_dataflow_p2.json
+    python -m lumina.ops.reporte_dataflow --salida reporte_dataflow_p3.json  Guarda con otro nombre
 
 Lee estado_despliegue_dataflow.json (lo escribe infra/desplegar_dataflow_memorystore.ps1) y consulta:
   - BigQuery: decisiones, latencias y agregados de esta corrida (consulta con tope de 1 GiB).
@@ -8,6 +10,7 @@ Lee estado_despliegue_dataflow.json (lo escribe infra/desplegar_dataflow_memorys
   - Memorystore: estado de la instancia y, por SSH a la VM, PING, INFO keyspace y una clave de ejemplo.
 """
 
+import argparse
 import json
 import os
 import subprocess
@@ -71,8 +74,12 @@ def bigquery_evidencia(run_id):
     return out
 
 
-def main():
-    """Junta el estado del job, sus contadores, Memorystore, redis-cli y BigQuery en un solo reporte."""
+def main(salida="reporte_dataflow_p2.json"):
+    """Junta el estado del job, sus contadores, Memorystore, redis-cli y BigQuery en un solo reporte.
+
+    Args:
+        salida: Nombre del archivo JSON dentro de REPORTES_DIR.
+    """
     ruta = os.path.join(REPORTES_DIR, "estado_despliegue_dataflow.json")
     with open(ruta, encoding="utf-8-sig") as f:
         estado = json.load(f)
@@ -108,7 +115,7 @@ def main():
 
     rep["bigquery"] = bigquery_evidencia(estado["run_id"])
 
-    destino = os.path.join(REPORTES_DIR, "reporte_dataflow_p2.json")
+    destino = os.path.join(REPORTES_DIR, salida)
     with open(destino, "w", encoding="utf-8") as f:
         json.dump(rep, f, ensure_ascii=False, indent=2, default=str)
     print(json.dumps(rep, ensure_ascii=False, indent=1, default=str))
@@ -116,4 +123,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--salida", default="reporte_dataflow_p2.json")
+    main(ap.parse_args().salida)

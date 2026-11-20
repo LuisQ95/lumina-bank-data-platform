@@ -72,7 +72,7 @@ if (-not $GCLOUD) {
 
 $REPORTES = Valor "LUMINA_REPORTS_DIR" (Join-Path $RAIZ "reports")
 New-Item -ItemType Directory -Force $REPORTES | Out-Null
-$ESTADO = Join-Path $REPORTES "estado_despliegue_dataflow.json"
+$RUTA_ESTADO = Join-Path $REPORTES "estado_despliegue_dataflow.json"
 
 function G {
     $salida = & $GCLOUD @args "--project=$PROYECTO" --quiet

@@ -1,14 +1,22 @@
 ﻿<#
-Crea Memorystore y la VM con redis-cli, y lanza el job de Dataflow. Ejecutar desde la raíz del repositorio.
+.SYNOPSIS
+    Crea Memorystore y la VM con redis-cli, y lanza el job de Dataflow.
 
-  .\infra\desplegar_dataflow_memorystore.ps1               Solo verifica. No crea nada ni cobra.
-  .\infra\desplegar_dataflow_memorystore.ps1 -AceptoCosto  Despliega. Cobra por hora hasta ejecutar apagar_y_verificar.ps1.
-  -SinVM                                                    No crea la VM de redis-cli.
+.DESCRIPTION
+    Sin parámetros solo verifica: credenciales, pruebas del pipeline, armado del job (dry run) y
+    recursos existentes. No crea nada ni cobra. Ejecutar desde la raíz del repositorio.
 
-Después del despliegue:
-  python -m lumina.streaming.publicador_dataflow --tx 3000 --tasa 50   Publica el tráfico de prueba.
-  python -m lumina.ops.reporte_dataflow                                Junta la evidencia (antes de apagar).
-  .\infra\apagar_y_verificar.ps1                                       Elimina todo lo que cobra.
+    Después del despliegue:
+      .\infra\desplegar_api.ps1 -Desplegar -ConectarMemorystore            Conecta la API a Redis (opcional).
+      python -m lumina.streaming.publicador_dataflow --tx 3000 --tasa 50   Publica tráfico de carga.
+      python -m lumina.ops.reporte_dataflow                                Junta la evidencia antes de apagar.
+      .\infra\apagar_y_verificar.ps1                                       Elimina todo lo que cobra.
+
+.PARAMETER AceptoCosto
+    Despliega. Cobra por hora hasta ejecutar apagar_y_verificar.ps1.
+
+.PARAMETER SinVM
+    No crea la VM de redis-cli.
 #>
 param([switch]$AceptoCosto, [switch]$SinVM)
 
@@ -17,7 +25,6 @@ $ErrorActionPreference = "Continue"
 Set-Location $RAIZ
 $env:PYTHONNOUSERSITE = "1"
 
-# ---------------------------------------------------------------- verificaciones sin costo
 Paso "1. Cuenta y proyecto"
 $cuenta = & $GCLOUD config get-value account --quiet
 Write-Host "Cuenta: $cuenta   Proyecto: $PROYECTO   Región: $REGION"
@@ -52,7 +59,6 @@ if (-not $AceptoCosto) {
     exit 0
 }
 
-# ---------------------------------------------------------------- despliegue con costo
 $inicio = (Get-Date).ToUniversalTime()
 $estado = [ordered]@{ inicio_utc = $inicio.ToString("o"); redis = $REDIS; vm = $(if ($SinVM) { $null } else { $VM }); job_nombre = $JOB }
 function Guardar { ($estado | ConvertTo-Json) | Set-Content -Path $script:ESTADO -Encoding UTF8 }

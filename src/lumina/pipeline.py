@@ -1,17 +1,18 @@
-"""Orquestador de la Entrega 2 (P2).
+"""Orquestador del procesamiento batch y del reporte consolidado.
 
 Orden de ejecución:
-  Fase 0  Revisa uso frente a las cuotas gratuitas y que no haya recursos cobrados por hora.
-  Fase 1  Pilar 1 Spark   -> lumina.batch.spark_cierres
-  Fase 2  Pilar 1 y 3 SQL -> lumina.batch.ejecutar_sql (Bronze -> Silver -> Gold)
-  Fase 3  Pilar 2 y 3     -> lumina.streaming.consumidor_local
-  Fase 4  Consultas sobre Gold y medición real de partición y clustering.
-  Salida  reporte_ejecucion_poc_p2.json, armado solo con valores medidos.
+    Batch Spark  lumina.batch.spark_cierres
+    Batch SQL    lumina.batch.ejecutar_sql (Bronze -> Silver -> Gold)
+    Cuotas       Uso frente a la capa gratuita y recursos que cobran por hora.
+    Consultas    Consultas Gold, decisiones de Dataflow y medición real de partición y clustering.
+    Salida       reporte_ejecucion_poc_p2.json, armado solo con valores medidos.
+
+El streaming no se orquesta aquí: Dataflow y Memorystore se despliegan con infra/ porque cobran por hora.
 
 Uso:
     set LUMINA_SPARK_PYTHON=<python del entorno con pyspark y Java 17>
     python -m lumina.pipeline
-    python -m lumina.pipeline --solo-consolidar   # no repite Spark, SQL ni streaming
+    python -m lumina.pipeline --solo-consolidar   (no repite Spark ni SQL)
 
 El costo real solo se confirma en Cloud Billing: este script no lee la facturación.
 """
@@ -86,8 +87,8 @@ CONSULTAS_GOLD = {
         FROM `{PROJECT_ID}.gold_operacion.agg_experiencia_digital`
         GROUP BY 1 ORDER BY 1""",
     "Stream_decisiones": f"""
-        SELECT decision, es_fraude_etiqueta, COUNT(*) AS tx, ROUND(AVG(latencia_e2e_ms), 1) AS latencia_media_ms
-        FROM `{PROJECT_ID}.silver_banco.stream_decisiones`
+        SELECT decision, es_fraude_etiqueta, COUNT(*) AS tx, ROUND(AVG(latencia_redis_ms), 2) AS latencia_redis_media_ms
+        FROM `{PROJECT_ID}.silver_banco.stream_decisiones_dataflow`
         GROUP BY 1, 2 ORDER BY 1, 2""",
 }
 
@@ -101,7 +102,17 @@ PRUEBAS_FISICAS = {
 
 
 def gcloud_lista(args, formato="value(name)"):
-    """Ejecuta gcloud sin entrada interactiva. Sin --quiet, una API apagada deja el proceso esperando."""
+    """Lista recursos con gcloud sin entrada interactiva.
+
+    Sin --quiet, una API apagada deja el proceso esperando una confirmación.
+
+    Args:
+        args: Argumentos de gcloud.
+        formato: Formato de salida de gcloud.
+
+    Returns:
+        Las líneas no vacías de la salida, o None si gcloud falló.
+    """
     r = subprocess.run(
         [GCLOUD, *args, f"--project={PROJECT_ID}", f"--format={formato}", "--quiet"],
         capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL,
@@ -110,15 +121,30 @@ def gcloud_lista(args, formato="value(name)"):
 
 
 def contar_recursos(api, args, habilitadas):
-    """Una API apagada implica que no hay recursos de ese servicio; un error se informa como no verificado."""
+    """Cuenta los recursos de un servicio.
+
+    Args:
+        api: Nombre de la API, por ejemplo redis.googleapis.com.
+        args: Argumentos de gcloud para listar.
+        habilitadas: APIs habilitadas en el proyecto.
+
+    Returns:
+        La cantidad de recursos, "API no habilitada" si la API está apagada (no puede haber recursos) o
+        "no verificado" si gcloud falló.
+    """
     if api not in habilitadas:
         return "API no habilitada"
     filas = gcloud_lista(args)
     return "no verificado" if filas is None else len(filas)
 
 
-def fase0_cuotas():
-    print("\n[FASE 0] Uso frente a cuotas gratuitas")
+def medir_cuotas():
+    """Mide el uso de Cloud Storage y BigQuery frente a la capa gratuita y cuenta los recursos que cobran por hora.
+
+    Returns:
+        Uso por bucket, inventario de tablas y conteo de Bigtable, VMs, Dataproc y Memorystore.
+    """
+    print("\n[CUOTAS] Uso frente a cuotas gratuitas")
     st = storage.Client(project=PROJECT_ID)
     bq = bigquery.Client(project=PROJECT_ID, location=REGION)
 
@@ -160,15 +186,27 @@ def fase0_cuotas():
 
 
 def correr(cmd):
-    """Ejecuta un paso del pipeline como módulo, con src/ en el PYTHONPATH."""
+    """Ejecuta un paso del pipeline como subproceso desde la raíz, con src/ en el PYTHONPATH.
+
+    Args:
+        cmd: Comando completo, por ejemplo [python, "-m", "lumina.batch.ejecutar_sql"].
+
+    Raises:
+        subprocess.CalledProcessError: Si el paso termina con error.
+    """
     print(f"\n  $ {' '.join(cmd)}")
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(RAIZ / "src"), env.get("PYTHONPATH")]))
     subprocess.run(cmd, cwd=str(RAIZ), check=True, env=env)
 
 
-def fase4_consultas():
-    print("\n[FASE 4] Consultas Gold y medición física")
+def medir_consultas():
+    """Ejecuta las consultas Gold y mide el efecto real de la partición y el clustering.
+
+    Returns:
+        Tupla (consultas_gold, mediciones_fisicas) con job_id, latencia y megabytes de cada consulta.
+    """
+    print("\n[CONSULTAS] Consultas Gold y medición física")
     bq = bigquery.Client(project=PROJECT_ID, location=REGION)
     consultas = {}
     for nombre, sql in CONSULTAS_GOLD.items():
@@ -195,6 +233,7 @@ def fase4_consultas():
 
 
 def leer(nombre):
+    """Lee un reporte JSON de REPORTES_DIR, o devuelve None si no existe."""
     ruta = os.path.join(REPORTES_DIR, nombre)
     if not os.path.exists(ruta):
         return None
@@ -203,6 +242,7 @@ def leer(nombre):
 
 
 def main():
+    """Ejecuta Spark y SQL (salvo con --solo-consolidar) y arma el reporte consolidado."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--solo-consolidar", action="store_true")
     a = ap.parse_args()
@@ -212,10 +252,9 @@ def main():
         py_spark = os.environ.get("LUMINA_SPARK_PYTHON", sys.executable)
         correr([py_spark, "-m", "lumina.batch.spark_cierres"])
         correr([sys.executable, "-m", "lumina.batch.ejecutar_sql"])
-        correr([sys.executable, "-m", "lumina.streaming.consumidor_local"])
 
-    cuotas = fase0_cuotas()
-    consultas, fisicas = fase4_consultas()
+    cuotas = medir_cuotas()
+    consultas, fisicas = medir_consultas()
     sql = leer("reporte_pipeline_sql_p2.json") or {}
 
     reporte = {
@@ -232,7 +271,7 @@ def main():
         "cuotas_y_recursos": cuotas,
         "pilar1_spark": leer("reporte_spark_p2.json"),
         "pilar1_y_3_sql": sql,
-        "pilar2_streaming": leer("reporte_streaming_p2.json"),
+        "streaming_dataflow": leer("reporte_dataflow_p2.json"),
         "consultas_gold": consultas,
         "medicion_particion_y_clustering": fisicas,
     }

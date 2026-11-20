@@ -20,6 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 spark = ["pyspark==3.5.5"]
 dataflow = ["apache-beam[gcp]==2.77.0", "redis==8.1.0"]
+api = ["flask>=3.0", "redis==8.1.0"]
 dev = ["pytest>=8", "fakeredis>=2.20", "ruff>=0.6"]
 
 [tool.setuptools.packages.find]
@@ -27,6 +28,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "lumina.batch" = ["sql/*.sql"]
+"lumina.api" = ["templates/*.html", "static/*"]
 
 [tool.ruff]
 line-length = 140

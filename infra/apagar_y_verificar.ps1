@@ -1,13 +1,25 @@
 ﻿<#
-Elimina lo que cobra por hora (job de Dataflow, Memorystore y VM) y verifica que no quede nada.
+.SYNOPSIS
+    Elimina lo que cobra por hora (job de Dataflow, Memorystore y VM) y verifica que no quede nada.
 
-  .\infra\apagar_y_verificar.ps1      (desde la raíz del repositorio)
+.DESCRIPTION
+    Si la API de Cloud Run quedó conectada a Memorystore, primero le quita la salida a la VPC. No toca
+    Cloud Storage, Pub/Sub ni BigQuery: los resultados y las suscripciones se conservan. El job
+    cancelado sigue visible en la consola de Dataflow con su Job Graph y sus métricas. Cloud Run
+    escala a cero y no cobra mientras no recibe solicitudes, por eso no se elimina.
 
-No toca Cloud Storage, Pub/Sub ni BigQuery: los resultados y las suscripciones se conservan.
-El job cancelado sigue visible en la consola de Dataflow con su Job Graph y sus métricas.
+.EXAMPLE
+    .\infra\apagar_y_verificar.ps1
 #>
 $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "config.ps1")
+
+Paso "0. Desconectando la API de Memorystore"
+$variablesApi = GS run services describe $SERVICIO_API --region=$REGION --format="value(spec.template.spec.containers[0].env)"
+if ($variablesApi -match "REDIS_HOST") {
+    G run services update $SERVICIO_API --region=$REGION --remove-env-vars=REDIS_HOST,REDIS_PORT --clear-network | Out-Null
+    Write-Host "API sin salida a la VPC."
+} else { Write-Host "La API no estaba conectada." }
 
 Paso "1. Cancelando jobs de Dataflow activos"
 $jobs = GS dataflow jobs list --region=$REGION --status=active --filter="name=$JOB" --format="value(id)"

@@ -1,8 +1,27 @@
-"""
-Configuración central de Lumina Bank.
+"""Configuración central de Lumina Bank.
 
 Todos los valores se pueden cambiar con variables de entorno o con un archivo `.env` en la raíz del
-repositorio (ver `.env.example`). Ningún módulo debe tener rutas o nombres de proyecto escritos a mano.
+repositorio (ver `.env.example`). Ningún módulo tiene rutas o nombres de proyecto escritos a mano.
+
+Attributes:
+    RAIZ: Raíz del repositorio.
+    PROJECT_ID: Proyecto de Google Cloud (GCP_PROJECT).
+    REGION: Región de los recursos (GCP_REGION).
+    GCLOUD: Ruta del CLI de Google Cloud.
+    DATA_DIR: Carpeta de datos locales (LUMINA_DATA_DIR); no se versiona.
+    REPORTES_DIR: Carpeta de reportes de evidencia (LUMINA_REPORTS_DIR).
+    SALT: Sal del token SHA-256 de clientes en el pipeline SQL (LUMINA_SALT). En producción vendría de
+        Secret Manager.
+    BUCKET_LANDING: Bucket de llegada de archivos crudos.
+    BUCKET_BRONZE: Bucket de la capa Bronze; también guarda los perfiles que usa Dataflow.
+    TOPICS: Tópicos de Pub/Sub por tipo de evento.
+    SUBSCRIPTIONS: Suscripciones de la ingesta inicial, sin entrega ordenada.
+    DATAFLOW_SUBSCRIPTIONS: Suscripciones del job de Dataflow, sin orden; las ventanas usan la hora del evento.
+    DATASETS: Datasets de BigQuery por capa.
+    DISTRITOS: Los ocho distritos de Lima del alcance.
+    COORDS_DISTRITOS: Centro aproximado de cada distrito, usado para la cobertura a menos de 8 km.
+    ENTIDADES: Las doce entidades fusionadas.
+    CANALES: Canales de atención.
 """
 
 import os
@@ -13,7 +32,11 @@ RAIZ = Path(__file__).resolve().parents[2]
 
 
 def _cargar_env(ruta: Path = RAIZ / ".env") -> None:
-    """Carga KEY=VALUE desde .env sin pisar variables ya definidas en el entorno."""
+    """Carga pares KEY=VALUE desde .env sin pisar variables ya definidas en el entorno.
+
+    Args:
+        ruta: Archivo .env; si no existe, no hace nada.
+    """
     if not ruta.exists():
         return
     for linea in ruta.read_text(encoding="utf-8").splitlines():
@@ -28,7 +51,11 @@ _cargar_env()
 
 
 def _gcloud() -> str:
-    """Ruta del CLI de Google Cloud: GCLOUD_BIN, el PATH o la instalación por defecto de Windows."""
+    """Ubica el CLI de Google Cloud.
+
+    Returns:
+        GCLOUD_BIN si está definido, si no el gcloud del PATH, si no la instalación por defecto de Windows.
+    """
     if os.environ.get("GCLOUD_BIN"):
         return os.environ["GCLOUD_BIN"]
     for nombre in ("gcloud", "gcloud.cmd"):
@@ -39,7 +66,6 @@ def _gcloud() -> str:
     return str(win) if win.exists() else "gcloud"
 
 
-# --------------------------------------------------------------------- proyecto y rutas
 PROJECT_ID = os.environ.get("GCP_PROJECT", "lumina-bank-utec-2026")
 REGION = os.environ.get("GCP_REGION", "us-central1")
 GCLOUD = _gcloud()
@@ -51,27 +77,15 @@ DATA_GENERATE_DIR = os.path.join(DATA_DIR, "data_generate")
 os.makedirs(REPORTES_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# Sal para el token SHA-256 de clientes en el pipeline SQL. En producción vendría de Secret Manager.
 SALT = os.environ.get("LUMINA_SALT", "demo-utec-2026")
 
-# --------------------------------------------------------------------- Cloud Storage
 BUCKET_LANDING = os.environ.get("LUMINA_BUCKET_LANDING", f"lumina-bank-landing-{PROJECT_ID}")
 BUCKET_BRONZE = os.environ.get("LUMINA_BUCKET_BRONZE", f"lumina-bank-bronze-{PROJECT_ID}")
 
-# --------------------------------------------------------------------- Pub/Sub
 TOPICS = {"tx": "transacciones", "clicks": "clicks", "atm": "atm", "geo": "geo"}
-
-# Suscripciones de la ingesta inicial (sin entrega ordenada).
 SUBSCRIPTIONS = {k: f"{v}-sub-bronze" for k, v in TOPICS.items()}
-
-# Suscripciones del consumidor streaming local, con entrega ordenada. Pub/Sub no permite activar el
-# orden después de crear una suscripción, por eso son distintas de las *-sub-bronze.
-STREAM_SUBSCRIPTIONS = {k: f"{v}-sub-stream" for k, v in TOPICS.items()}
-
-# Suscripciones del job de Dataflow (sin orden; las ventanas usan la hora del evento).
 DATAFLOW_SUBSCRIPTIONS = {k: f"{v}-sub-dataflow" for k, v in TOPICS.items()}
 
-# --------------------------------------------------------------------- BigQuery
 DATASETS = {
     "bronze": "bronze_banco",
     "silver": "silver_banco",
@@ -80,11 +94,9 @@ DATASETS = {
     "gold_operacion": "gold_operacion",
 }
 
-# --------------------------------------------------------------------- negocio
 DISTRITOS = ["San Isidro", "Miraflores", "San Borja", "Santiago de Surco",
              "La Molina", "San Miguel", "Magdalena del Mar", "Lince"]
 
-# Centro aproximado de cada distrito (Lima Metropolitana), usado para la cobertura < 8 km.
 COORDS_DISTRITOS = {
     "San Isidro": (-12.0972, -77.0365),
     "Miraflores": (-12.1191, -77.0290),

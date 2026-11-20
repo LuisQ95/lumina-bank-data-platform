@@ -1,4 +1,4 @@
-"""La configuración se toma de variables de entorno y no depende de la carpeta desde donde se ejecuta."""
+"""Pruebas de lumina.config: los valores salen de variables de entorno y no dependen de la carpeta de ejecución."""
 
 import importlib
 
@@ -6,6 +6,7 @@ import lumina.config as config
 
 
 def test_valores_por_defecto():
+    """Los valores por defecto definen proyecto, región, cinco datasets, 8 distritos y 12 entidades."""
     assert config.PROJECT_ID
     assert config.REGION
     assert set(config.DATASETS) == {"bronze", "silver", "gold_fraude", "gold_liquidez", "gold_operacion"}
@@ -13,6 +14,7 @@ def test_valores_por_defecto():
 
 
 def test_variables_de_entorno_tienen_prioridad(monkeypatch, tmp_path):
+    """GCP_PROJECT, GCP_REGION y las carpetas se toman del entorno y los nombres derivados se recalculan."""
     monkeypatch.setenv("GCP_PROJECT", "proyecto-prueba")
     monkeypatch.setenv("GCP_REGION", "europe-west1")
     monkeypatch.setenv("LUMINA_REPORTS_DIR", str(tmp_path / "rep"))
@@ -29,10 +31,12 @@ def test_variables_de_entorno_tienen_prioridad(monkeypatch, tmp_path):
 
 
 def test_suscripciones_derivadas_de_los_topicos():
+    """Cada tópico tiene su suscripción de Bronze y la de Dataflow."""
     for clave, topico in config.TOPICS.items():
-        assert config.STREAM_SUBSCRIPTIONS[clave] == f"{topico}-sub-stream"
+        assert config.SUBSCRIPTIONS[clave] == f"{topico}-sub-bronze"
         assert config.DATAFLOW_SUBSCRIPTIONS[clave] == f"{topico}-sub-dataflow"
 
 
 def test_raiz_es_el_repositorio():
+    """RAIZ apunta a la raíz del repositorio."""
     assert (config.RAIZ / "pyproject.toml").exists()

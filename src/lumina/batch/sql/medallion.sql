@@ -1,7 +1,7 @@
 -- =====================================================================================
--- PILAR 1 y 3 (ENTREGA P2): PIPELINE SQL MEDALLION  Bronze -> Silver -> Gold
+-- PIPELINE SQL MEDALLION  Bronze -> Silver -> Gold
 -- Proyecto GCP : lumina-bank-utec-2026 | Región: us-central1
--- Ejecución    : python 07_ejecutar_pipeline_sql.py  (cada bloque "-- @paso:" es un job)
+-- Ejecución    : python -m lumina.batch.ejecutar_sql  (cada bloque "-- @paso:" es un job)
 --
 -- Regla de diseño: este pipeline NO sobrescribe las tablas de la carga inicial
 -- (silver_banco.fact_transaccion y silver_banco.dim_cliente). Lee desde el Data Lake
@@ -10,8 +10,7 @@
 -- =====================================================================================
 
 -- @paso: bronze_ext_clientes
--- Bronze real: tabla externa sobre el lago. Elimina la dependencia circular anterior
--- (core_clientes_cdc_raw era una vista que leía desde Silver).
+-- Bronze: tabla externa sobre el lago, sin depender de Silver.
 CREATE OR REPLACE EXTERNAL TABLE `lumina-bank-utec-2026.bronze_banco.gcs_core_clientes`
 OPTIONS (format = 'PARQUET', uris = ['gs://lumina-bank-bronze-lumina-bank-utec-2026/cdc_cores/*.parquet']);
 
@@ -69,8 +68,7 @@ QUALIFY ROW_NUMBER() OVER (
 ) = 1;
 
 -- @paso: silver_sec_benchmark
--- Benchmark CALCULADO (reemplaza el literal 28.5 de la versión anterior):
--- margen neto = utilidad neta / (ingresos financieros + ingresos no financieros), anual.
+-- Benchmark calculado: margen neto = utilidad neta / (ingresos financieros + ingresos no financieros), anual.
 CREATE OR REPLACE TABLE `lumina-bank-utec-2026.silver_banco.sec_benchmark_bancos` AS
 WITH anual AS (
     SELECT

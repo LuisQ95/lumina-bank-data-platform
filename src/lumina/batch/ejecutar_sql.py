@@ -7,6 +7,9 @@ Uso:
     python -m lumina.batch.ejecutar_sql                # todos los pasos
     python -m lumina.batch.ejecutar_sql --desde gold_  # desde el primer paso con ese prefijo
     python -m lumina.batch.ejecutar_sql --dry-run      # solo estima bytes
+
+Attributes:
+    MAX_BYTES_POR_JOB: Tope duro de 8 GiB facturados por consulta.
 """
 
 import argparse
@@ -25,10 +28,15 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 SQL_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sql", "medallion.sql")
 OUT_FILE = os.path.join(REPORTES_DIR, "reporte_pipeline_sql_p2.json")
-MAX_BYTES_POR_JOB = 8 * 1024**3  # tope duro: una consulta no puede facturar más de 8 GiB
+MAX_BYTES_POR_JOB = 8 * 1024**3
 
 
 def leer_pasos():
+    """Divide medallion.sql en pasos y reemplaza la sal del token de clientes.
+
+    Returns:
+        Lista de tuplas (nombre_del_paso, sql) en el orden del archivo.
+    """
     with open(SQL_FILE, encoding="utf-8") as f:
         texto = f.read()
     texto = texto.replace("{{SALT}}", SALT)
@@ -37,6 +45,11 @@ def leer_pasos():
 
 
 def main():
+    """Ejecuta los pasos como jobs de BigQuery y guarda el reporte con calidad y conciliación.
+
+    Las tablas de calidad y conciliación solo existen si se ejecutaron sus pasos; si se corrió un
+    subconjunto, el reporte las marca como no disponibles.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--desde", default=None)
     ap.add_argument("--dry-run", action="store_true")
@@ -96,7 +109,7 @@ def main():
         try:
             filas = client.query(f"SELECT * FROM `{PROJECT_ID}.silver_banco.{tabla}`").result()
             reporte[tabla] = [dict(r.items()) for r in filas]
-        except Exception as exc:  # solo aplica si se ejecutó un subconjunto de pasos
+        except Exception as exc:
             reporte[tabla] = f"no disponible: {exc}"
 
     with open(OUT_FILE, "w", encoding="utf-8") as f:

@@ -1,0 +1,14 @@
+# Lo que NO se sube a Cloud Build al desplegar la API. La imagen solo necesita src/ e infra/api-requirements.txt
+.git
+.gitignore
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+data/
+reports/
+docs/
+tests/
+Makefile
+requirements*.txt

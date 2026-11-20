@@ -1,26 +1,27 @@
-"""
-Pilar 2 (Entrega P2): pipeline streaming en Apache Beam para Cloud Dataflow con estado en Memorystore.
+"""Pipeline streaming en Apache Beam para Cloud Dataflow con estado en Memorystore for Redis.
 
 Flujo:
-  Pub/Sub (transacciones, geo, atm, clicks)
+    Pub/Sub (transacciones, geo, atm, clicks)
     -> parseo y validación (los mensajes inválidos van a una tabla de rechazos)
-    -> estado caliente en Memorystore for Redis (deduplicación, velocidad, acumulado, GPS, ATM)
+    -> estado caliente en Memorystore (deduplicación, velocidad, acumulado, GPS, ATM)
     -> decisión por reglas
     -> BigQuery: silver_banco.stream_decisiones_dataflow (detalle)
                  gold_fraude.agg_stream_distrito_1m (ventanas fijas de 1 minuto)
 
-Las reglas son las de lumina.streaming.consumidor_local. No hay modelo de ML.
+Las decisiones son reglas explícitas, sin modelo de machine learning.
 
 Límites conocidos:
-  - La deduplicación ocurre antes de escribir en BigQuery. Si Dataflow reintenta un bloque ya
-    registrado en Redis, ese evento se descarta como duplicado; se prefiere esto a contar dos veces
-    el acumulado del cliente.
-  - Las suscripciones *-sub-dataflow no usan entrega ordenada. Las ventanas de velocidad se calculan
-    con la marca de tiempo del evento, por lo que no dependen del orden de llegada.
+    La deduplicación ocurre antes de escribir en BigQuery. Si Dataflow reintenta un bloque ya registrado
+    en Redis, ese evento se descarta como duplicado; se prefiere esto a sumar dos veces el acumulado.
+    Las suscripciones *-sub-dataflow no usan entrega ordenada. Las ventanas de velocidad se calculan con
+    la hora del evento, así que no dependen del orden de llegada.
 
 Uso en Dataflow (ver README):
-    python src/lumina/streaming/dataflow_pipeline.py --runner DataflowRunner --project ... \
+    python src/lumina/streaming/dataflow_pipeline.py --runner DataflowRunner --project ... \\
         --redis_host 10.x.x.x --perfiles_gcs gs://.../perfiles_muestra.jsonl
+
+Un job streaming no termina solo: el lanzador lo envía, imprime JOB_ID y sale. Se detiene con
+infra/apagar_y_verificar.ps1.
 """
 
 import argparse
@@ -64,20 +65,51 @@ ESQUEMA_RECHAZOS = "run_id:STRING,origen:STRING,error:STRING,mensaje:STRING,reci
 
 
 def crear_cliente(host, port):
+    """Crea un cliente de Redis con timeouts de 2 segundos.
+
+    Args:
+        host: IP privada de Memorystore.
+        port: Puerto de Redis.
+
+    Returns:
+        Cliente de Redis que devuelve cadenas.
+    """
     import redis
 
     return redis.Redis(host=host, port=port, decode_responses=True, socket_timeout=2, socket_connect_timeout=2)
 
 
 def iso_ms(epoch_ms):
+    """Convierte milisegundos desde epoch a una marca de tiempo ISO 8601 en UTC."""
     return datetime.fromtimestamp(epoch_ms / 1000, tz=timezone.utc).isoformat()
 
 
 def calcular_riesgo(vel_1m, salto, monto):
+    """Calcula el riesgo de una transacción, acotado a 0.99.
+
+    Args:
+        vel_1m: Transacciones del cliente en el último minuto, incluida la actual.
+        salto: 1 si el GPS del cliente está en otro distrito.
+        monto: Monto en soles.
+
+    Returns:
+        0.08 por transacción del último minuto, más 0.45 si hay salto de GPS, más 0.4 × monto / 25,000.
+    """
     return round(min(0.99, 0.08 * vel_1m + (0.45 if salto else 0.0) + (monto / 25000.0) * 0.4), 3)
 
 
 def tomar_decision(riesgo, acumulado, limite):
+    """Aplica las reglas de decisión.
+
+    Args:
+        riesgo: Resultado de calcular_riesgo.
+        acumulado: Monto acumulado del cliente en el día, incluida la transacción actual.
+        limite: Límite diario del cliente; 0 significa sin límite conocido.
+
+    Returns:
+        REVISION_FRAUDE si el riesgo es 0.65 o más, RECHAZADA_LIMITE si el acumulado supera el límite,
+        o APROBADA.
+    """
     if riesgo >= UMBRAL_RIESGO_REVISION:
         return "REVISION_FRAUDE"
     if limite and acumulado > limite:
@@ -86,7 +118,21 @@ def tomar_decision(riesgo, acumulado, limite):
 
 
 def evaluar_tx(r, ev, limite, run_id, ahora_ms):
-    """Actualiza el estado en Redis y devuelve la decisión. Devuelve None si el evento es un duplicado."""
+    """Actualiza el estado del cliente en Redis y decide la transacción.
+
+    Usa SET NX para la deduplicación, un ZSET por cliente para las ventanas de 1 y 5 minutos según la
+    hora del evento y HINCRBYFLOAT para el acumulado del día.
+
+    Args:
+        r: Cliente de Redis.
+        ev: Evento de transacción validado.
+        limite: Límite diario del cliente.
+        run_id: Identificador de la corrida.
+        ahora_ms: Hora de la decisión en milisegundos.
+
+    Returns:
+        La fila para BigQuery, o None si el id de la transacción ya se había procesado.
+    """
     tid, cid = ev["id_transaccion"], ev["id_cliente"]
     if not r.set(f"dedup:{tid}", 1, nx=True, ex=TTL_DEDUP_S):
         return None
@@ -125,19 +171,27 @@ def evaluar_tx(r, ev, limite, run_id, ahora_ms):
 
 
 def es_alerta_atm(ev):
+    """Indica si una lectura de cajero tiene efectivo bajo el 20 % o temperatura sobre 35 °C."""
     pct = ev.get("pct_efectivo")
     temp = ev.get("temperatura_c")
     return (pct is not None and pct < UMBRAL_PCT_EFECTIVO) or (temp is not None and temp > UMBRAL_TEMPERATURA_C)
 
 
 class ParsearJson(beam.DoFn):
-    """Convierte bytes en dict. Lo que no se pueda leer sale por la salida 'rechazado'."""
+    """Convierte mensajes de Pub/Sub en diccionarios y separa los inválidos.
+
+    Args:
+        origen: Nombre del flujo, para la métrica y la tabla de rechazos.
+        campos: Campos obligatorios.
+        run_id: Identificador de la corrida.
+    """
 
     def __init__(self, origen, campos, run_id):
         self.origen, self.campos, self.run_id = origen, campos, run_id
         self.rechazados = Metrics.counter("lumina", f"rechazados_{origen}")
 
     def process(self, mensaje):
+        """Emite el evento por la salida principal, o el error por la salida 'rechazado'."""
         try:
             ev = json.loads(mensaje.decode("utf-8"))
             faltan = [c for c in self.campos if c not in ev]
@@ -153,22 +207,38 @@ class ParsearJson(beam.DoFn):
 
 
 class ConRedis(beam.DoFn):
-    """Abre una conexión por instancia del DoFn y la cierra al terminar."""
+    """Base de los DoFn que usan Redis: una conexión por instancia del DoFn.
+
+    Args:
+        host: IP privada de Memorystore.
+        port: Puerto de Redis.
+    """
 
     def __init__(self, host, port):
         self.host, self.port = host, port
         self.r = None
 
     def setup(self):
+        """Abre la conexión y verifica que Redis responda."""
         self.r = crear_cliente(self.host, self.port)
         self.r.ping()
 
     def teardown(self):
+        """Cierra la conexión al terminar el worker."""
         if self.r is not None:
             self.r.close()
 
 
 class DecidirTx(ConRedis):
+    """Decide cada transacción con el estado del cliente en Redis.
+
+    Args:
+        host: IP privada de Memorystore.
+        port: Puerto de Redis.
+        perfiles_gcs: Ruta gs:// de los perfiles con el límite diario de cada cliente.
+        run_id: Identificador de la corrida.
+    """
+
     def __init__(self, host, port, perfiles_gcs, run_id):
         super().__init__(host, port)
         self.perfiles_gcs, self.run_id = perfiles_gcs, run_id
@@ -180,6 +250,7 @@ class DecidirTx(ConRedis):
         self.lat_redis = Metrics.distribution("lumina", "latencia_redis_ms")
 
     def setup(self):
+        """Abre Redis y carga los límites diarios desde Cloud Storage."""
         super().setup()
         with FileSystems.open(self.perfiles_gcs) as f:
             for linea in f:
@@ -187,6 +258,7 @@ class DecidirTx(ConRedis):
                 self.limites[perfil["id_cliente"]] = float(perfil.get("limite_diario_pen") or 0.0)
 
     def process(self, ev):
+        """Emite la fila de decisión y actualiza las métricas; los duplicados solo se cuentan."""
         import time
 
         t0 = time.perf_counter()
@@ -205,22 +277,38 @@ class DecidirTx(ConRedis):
 
 
 class GuardarGps(ConRedis):
+    """Guarda en Redis el último distrito GPS de cada cliente durante un día.
+
+    Args:
+        host: IP privada de Memorystore.
+        port: Puerto de Redis.
+    """
+
     def __init__(self, host, port):
         super().__init__(host, port)
         self.recibidos = Metrics.counter("lumina", "geo_en_redis")
 
     def process(self, ev):
+        """Escribe la clave gps:<id_cliente>."""
         self.r.set(f"gps:{ev['id_cliente']}", ev["id_distrito_actual"], ex=TTL_LIMITES_S)
         self.recibidos.inc()
 
 
 class GuardarAtm(ConRedis):
+    """Guarda en Redis la última lectura de cada cajero y el conjunto de cajeros con alerta.
+
+    Args:
+        host: IP privada de Memorystore.
+        port: Puerto de Redis.
+    """
+
     def __init__(self, host, port):
         super().__init__(host, port)
         self.recibidos = Metrics.counter("lumina", "atm_en_redis")
         self.alertas = Metrics.counter("lumina", "atm_alertas")
 
     def process(self, ev):
+        """Escribe atm_health:<id_atm> y, si hay alerta, agrega el cajero a atm_alertas."""
         clave = f"atm_health:{ev['id_atm']}"
         p = self.r.pipeline(transaction=False)
         p.hset(clave, mapping={k: v for k, v in ev.items() if v is not None})
@@ -233,11 +321,19 @@ class GuardarAtm(ConRedis):
 
 
 class ContarClics(ConRedis):
+    """Cuenta en Redis los clics totales y los que requieren un asesor humano.
+
+    Args:
+        host: IP privada de Memorystore.
+        port: Puerto de Redis.
+    """
+
     def __init__(self, host, port):
         super().__init__(host, port)
         self.recibidos = Metrics.counter("lumina", "clics_en_redis")
 
     def process(self, ev):
+        """Incrementa los contadores del hash clics:resumen."""
         p = self.r.pipeline(transaction=False)
         p.hincrby("clics:resumen", "total", 1)
         p.hincrby("clics:resumen", "requieren_asesor", int(ev.get("requiere_asesor_humano", 0)))
@@ -246,15 +342,23 @@ class ContarClics(ConRedis):
 
 
 def sumar_pares(pares):
+    """Suma por separado los dos componentes de pares (transacciones, monto)."""
     pares = list(pares)
     return sum(a for a, _ in pares), sum(b for _, b in pares)
 
 
 class FormatearVentana(beam.DoFn):
+    """Convierte el agregado por distrito y decisión en una fila con los límites de su ventana.
+
+    Args:
+        run_id: Identificador de la corrida.
+    """
+
     def __init__(self, run_id):
         self.run_id = run_id
 
     def process(self, elemento, ventana=beam.DoFn.WindowParam):
+        """Emite la fila de gold_fraude.agg_stream_distrito_1m."""
         (distrito, decision), (n, monto) = elemento
         yield {
             "run_id": self.run_id,
@@ -265,10 +369,22 @@ class FormatearVentana(beam.DoFn):
 
 
 def transformar(tx, geo, atm, clicks, cfg):
-    """Grafo común a Dataflow y a las pruebas locales. Recibe PCollections de bytes."""
+    """Arma el grafo común a Dataflow y a las pruebas locales.
+
+    Args:
+        tx: PCollection de bytes de transacciones.
+        geo: PCollection de bytes de GPS.
+        atm: PCollection de bytes de telemetría de cajeros.
+        clicks: PCollection de bytes de clics.
+        cfg: Diccionario con redis_host, redis_port, perfiles_gcs y run_id.
+
+    Returns:
+        Tupla (decisiones, agregado_1m, rechazos) de PCollections.
+    """
     host, port, run_id = cfg["redis_host"], cfg["redis_port"], cfg["run_id"]
 
     def parsear(pc, origen, campos):
+        """Aplica ParsearJson con salida principal 'ok' y salida 'rechazado'."""
         return pc | f"Validar {origen}" >> beam.ParDo(ParsearJson(origen, campos, run_id)).with_outputs("rechazado", main="ok")
 
     tx_p = parsear(tx, "tx", ["id_transaccion", "id_cliente", "id_distrito", "canal", "type", "amount", "isFraud", "epoch_ms"])
@@ -294,6 +410,15 @@ def transformar(tx, geo, atm, clicks, cfg):
 
 
 def escribir_bq(pc, nombre, tabla, esquema, parametros=None):
+    """Escribe una PCollection en BigQuery con inserciones streaming, creando la tabla si no existe.
+
+    Args:
+        pc: PCollection de filas.
+        nombre: Nombre del paso en el grafo.
+        tabla: Tabla destino proyecto:dataset.tabla.
+        esquema: Esquema en formato campo:TIPO.
+        parametros: Partición y clustering de la tabla, si corresponde.
+    """
     return pc | nombre >> WriteToBigQuery(
         tabla,
         schema=esquema,
@@ -305,6 +430,11 @@ def escribir_bq(pc, nombre, tabla, esquema, parametros=None):
 
 
 def main(argv=None):
+    """Lanza el job streaming en Dataflow e imprime JOB_ID.
+
+    Args:
+        argv: Argumentos propios (--redis_host, --redis_port, --perfiles_gcs, --run_id) más las opciones de Beam.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--redis_host", required=True)
     ap.add_argument("--redis_port", type=int, default=6379)
@@ -318,6 +448,7 @@ def main(argv=None):
     proyecto = opciones.get_all_options()["project"]
 
     def sub(nombre):
+        """Ruta completa de la suscripción *-sub-dataflow de un tópico."""
         return f"projects/{proyecto}/subscriptions/{nombre}-sub-dataflow"
 
     cfg = {"redis_host": args.redis_host, "redis_port": args.redis_port, "perfiles_gcs": args.perfiles_gcs, "run_id": args.run_id}
@@ -336,7 +467,6 @@ def main(argv=None):
     escribir_bq(agregado, "BigQuery agregado 1 min", f"{proyecto}:gold_fraude.agg_stream_distrito_1m", ESQUEMA_AGREGADO)
     escribir_bq(rechazos, "BigQuery rechazos", f"{proyecto}:silver_banco.stream_rechazos", ESQUEMA_RECHAZOS)
 
-    # Un job streaming no termina solo: se envía y el lanzador sale. Se detiene con infra/apagar_y_verificar.ps1.
     resultado = p.run()
     job = getattr(resultado, "job_id", None)
     print(f"JOB_ID={job() if callable(job) else job}")

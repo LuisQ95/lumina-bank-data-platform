@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumina Bank · Plataforma de datos</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+<header class="barra">
+  <div class="marca">
+    <span class="logo" aria-hidden="true">L</span>
+    <div>
+      <h1>Lumina Bank</h1>
+      <p>Decisiones antifraude en tiempo real y datos Gold en Google Cloud</p>
+    </div>
+  </div>
+  <div class="chips" id="chips">
+    <span class="chip" id="chip-api">API: verificando…</span>
+    <span class="chip" id="chip-redis">Memorystore: verificando…</span>
+  </div>
+</header>
+
+<main>
+  <section class="flujo" aria-label="Recorrido de la transacción">
+    <span>Cloud Run</span><i>→</i><span>Pub/Sub</span><i>→</i><span>Dataflow</span><i>↔</i><span>Memorystore</span><i>→</i><span>BigQuery</span><i>→</i><span>Cloud Run</span>
+  </section>
+
+  <div class="rejilla">
+    <section class="tarjeta">
+      <h2>1. Nueva transacción</h2>
+      <p class="ayuda">Cada envío se publica en Pub/Sub y lo decide el job de Dataflow con el estado del cliente en Memorystore.</p>
+
+      <form id="form-tx">
+        <label>Cliente del core
+          <select id="cliente" name="id_cliente" required><option value="">Cargando clientes…</option></select>
+        </label>
+        <dl class="perfil" id="perfil"></dl>
+
+        <fieldset class="gps">
+          <legend>Ubicación del celular (GPS)</legend>
+          <div class="fila">
+            <select id="gps-distrito" aria-label="Distrito del GPS">
+              {% for d in distritos %}<option>{{ d }}</option>{% endfor %}
+            </select>
+            <button type="button" class="secundario" id="btn-gps">Reportar ubicación</button>
+          </div>
+        </fieldset>
+
+        <div class="dos">
+          <label>Distrito de la operación
+            <select name="id_distrito" id="distrito">{% for d in distritos %}<option>{{ d }}</option>{% endfor %}</select>
+          </label>
+          <label>Canal
+            <select name="canal">{% for c in canales %}<option>{{ c }}</option>{% endfor %}</select>
+          </label>
+          <label>Tipo de operación
+            <select name="tipo_operacion">{% for t in tipos %}<option>{{ t }}</option>{% endfor %}</select>
+          </label>
+          <label>Monto (S/)
+            <input name="monto_pen" type="number" min="1" max="50000" step="0.01" value="350" required>
+          </label>
+        </div>
+
+        <div class="acciones">
+          <button type="submit" id="btn-enviar">Enviar transacción</button>
+          <button type="button" class="secundario" id="btn-reintento" disabled>Reenviar la misma (reintento)</button>
+          <button type="button" class="secundario" id="btn-rafaga">Ráfaga de 4</button>
+        </div>
+      </form>
+
+      <details class="reglas">
+        <summary>Reglas de decisión que aplica Dataflow</summary>
+        <ul>
+          <li>Riesgo = 0.08 × transacciones del último minuto + 0.45 si el GPS está en otro distrito + 0.4 × monto / 25,000.</li>
+          <li>Riesgo de 0.65 o más: <b>REVISION_FRAUDE</b>.</li>
+          <li>Acumulado del día mayor que el límite del cliente: <b>RECHAZADA_LIMITE</b>.</li>
+          <li>Un id de transacción repetido se descarta en Redis con SET NX y no llega a BigQuery.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="tarjeta">
+      <h2>2. Seguimiento</h2>
+      <ol class="pasos" id="pasos"><li class="vacio">Envía una transacción para ver su recorrido.</li></ol>
+      <div id="resultado"></div>
+      <div id="estado-redis"></div>
+    </section>
+  </div>
+
+  <section class="tarjeta">
+    <div class="titulo-fila">
+      <h2>3. Decisiones en BigQuery</h2>
+      <span class="ayuda">silver_banco.stream_decisiones_dataflow · se actualiza cada 10 s</span>
+    </div>
+    <div class="kpis" id="resumen"></div>
+    <div class="tabla-envoltura"><table id="tabla-recientes"></table></div>
+  </section>
+
+  <section class="tarjeta">
+    <h2>4. Datos Gold para tableros y modelos</h2>
+    <div class="pestanas" role="tablist">
+      <button role="tab" data-gold="/api/fraude/distritos?dias=30" aria-selected="true">Fraude por distrito</button>
+      <button role="tab" data-gold="/api/liquidez/plan">Plan de liquidez D+1</button>
+      <button role="tab" data-gold="/api/operacion/kpi">KPI vs. SEC</button>
+      <button role="tab" data-gold="/api/atm/salud?solo_alertas=1">Cajeros con alerta</button>
+      <button role="tab" data-gold="/api/digital/experiencia">Experiencia digital</button>
+    </div>
+    <p class="ayuda">Endpoint: <code id="gold-endpoint"></code></p>
+    <div class="tabla-envoltura"><table id="tabla-gold"></table></div>
+  </section>
+</main>
+
+<footer>Lumina Bank · Big Data UTEC 2026 · Enzo Ochoa, Luis Quispe y Roberto Mendez</footer>
+</body>
+</html>

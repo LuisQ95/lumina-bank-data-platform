@@ -1,5 +1,6 @@
 #!/bin/bash
-# Evidencia de conexión activa a Memorystore desde la VM. Uso: bash redis_evidencia.sh <IP_REDIS>
+# Evidencia de conexión activa a Memorystore desde la VM.
+# Uso: bash redis_evidencia.sh <IP_REDIS>
 H="$1"
 R="redis-cli -h $H"
 echo "== PING =="; $R PING

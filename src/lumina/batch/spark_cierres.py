@@ -43,7 +43,18 @@ OUT_TX_RESUMEN = os.path.join(DATA_GENERATE_DIR, "silver_tx_cliente_resumen_spar
 
 
 def compuerta_sha256(ruta_parquet, ruta_manifest):
-    """Devuelve el detalle si el hash coincide. Si no coincide, detiene el pipeline."""
+    """Verifica que el lote coincida con el hash SHA-256 de su manifiesto.
+
+    Args:
+        ruta_parquet: Lote de cierres descargado.
+        ruta_manifest: _MANIFEST.json que acompaña al lote.
+
+    Returns:
+        Archivo, registros declarados y hash calculado.
+
+    Raises:
+        SystemExit: Si el hash no coincide; el lote no se admite y el pipeline se detiene.
+    """
     with open(ruta_manifest, encoding="utf-8") as f:
         manifest = json.load(f)
     h = hashlib.sha256()
@@ -59,7 +70,11 @@ def compuerta_sha256(ruta_parquet, ruta_manifest):
 
 
 def descargar_lote_landing():
-    """Trae el lote y su manifiesto desde el bucket Landing: la compuerta valida lo que llegó a GCS."""
+    """Descarga el lote y su manifiesto del bucket Landing, para que la compuerta valide lo que llegó a GCS.
+
+    Returns:
+        Tupla (ruta_parquet, ruta_manifest) en DATA_DIR/landing_verificado.
+    """
     from google.cloud import storage
 
     destino = os.path.join(DATA_DIR, "landing_verificado")
@@ -73,7 +88,15 @@ def descargar_lote_landing():
 
 
 def probar_compuerta_negativa(ruta_parquet, ruta_manifest):
-    """Altera 1 byte en una copia y comprueba que la compuerta detiene el pipeline."""
+    """Altera un byte en una copia del lote y comprueba que la compuerta lo bloquea.
+
+    Args:
+        ruta_parquet: Lote original; no se modifica.
+        ruta_manifest: Manifiesto con el hash esperado.
+
+    Returns:
+        `lote_alterado_bloqueado` en True si la compuerta detuvo la copia alterada.
+    """
     copia = ruta_parquet + ".alterado"
     with open(ruta_parquet, "rb") as f:
         datos = bytearray(f.read())
@@ -90,6 +113,14 @@ def probar_compuerta_negativa(ruta_parquet, ruta_manifest):
 
 
 def crear_sesion(master):
+    """Crea la sesión de Spark con zona horaria UTC y marcas de tiempo compatibles con BigQuery.
+
+    Args:
+        master: URL del master, por ejemplo local[*] o yarn en Dataproc.
+
+    Returns:
+        La SparkSession.
+    """
     from pyspark.sql import SparkSession
 
     return (
@@ -105,6 +136,19 @@ def crear_sesion(master):
 
 
 def transformar_cierres(spark, ruta_cierres, ruta_edi):
+    """Limpia los cierres contables y recalcula el volumen en USD con el tipo de cambio EDI del día.
+
+    Excluye nulos en llaves y volúmenes o transacciones no positivos, y conserva un registro por llave
+    de negocio (el de mayor volumen).
+
+    Args:
+        spark: Sesión de Spark.
+        ruta_cierres: Parquet de cierres de las 12 entidades.
+        ruta_edi: Parquet del tipo de cambio diario EDI.
+
+    Returns:
+        Tupla (cierres_limpios, resumen_entidad_distrito, métricas de exclusión).
+    """
     from pyspark.sql import functions as F
     from pyspark.sql.window import Window
 
@@ -161,6 +205,17 @@ def transformar_cierres(spark, ruta_cierres, ruta_edi):
 
 
 def cruzar_tx_clientes(spark, ruta_tx, ruta_clientes):
+    """Cruza las transacciones con el core de clientes y resume por segmento y distrito.
+
+    Args:
+        spark: Sesión de Spark.
+        ruta_tx: Parquet de transacciones PaySim enriquecidas.
+        ruta_clientes: Parquet del core de clientes.
+
+    Returns:
+        DataFrame con transacciones, clientes activos, volumen, excesos de límite, operaciones fuera
+        del distrito habitual y transacciones huérfanas.
+    """
     from pyspark.sql import functions as F
 
     tx = spark.read.parquet(ruta_tx).select("id_transaccion", "id_cliente", "id_distrito", "amount", "isFraud", "type")
@@ -184,7 +239,14 @@ def cruzar_tx_clientes(spark, ruta_tx, ruta_clientes):
 
 
 def guardar_parquet(df_pandas, ruta):
-    """Escritura con PyArrow: evita depender de winutils.exe en Windows al ejecutar en local."""
+    """Escribe un DataFrame de pandas en Parquet con PyArrow.
+
+    Se usa PyArrow y no Spark para no depender de winutils.exe al ejecutar en Windows.
+
+    Args:
+        df_pandas: Datos a escribir.
+        ruta: Archivo de salida.
+    """
     import pyarrow as pa
     import pyarrow.parquet as pq
 
@@ -192,6 +254,15 @@ def guardar_parquet(df_pandas, ruta):
 
 
 def cargar_bigquery(ruta, tabla):
+    """Carga un Parquet en silver_banco reemplazando la tabla.
+
+    Args:
+        ruta: Parquet local.
+        tabla: Nombre de la tabla destino en silver_banco.
+
+    Returns:
+        Tabla destino, job_id y filas cargadas.
+    """
     from google.cloud import bigquery
 
     client = bigquery.Client(project=PROJECT_ID, location=REGION)
@@ -207,6 +278,15 @@ def cargar_bigquery(ruta, tabla):
 
 
 def ejecutar_pilar1_transformacion(master="local[*]", cargar=True):
+    """Ejecuta el pipeline batch completo y guarda reporte_spark_p2.json.
+
+    Args:
+        master: URL del master de Spark.
+        cargar: Si es False, no carga las salidas a BigQuery.
+
+    Returns:
+        El reporte con compuerta, métricas de limpieza, tiempos y cargas.
+    """
     t0 = time.time()
     ruta_cierres, ruta_manifest = descargar_lote_landing()
     prueba_negativa = probar_compuerta_negativa(ruta_cierres, ruta_manifest)

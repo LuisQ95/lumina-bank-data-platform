@@ -1,5 +1,11 @@
-"""Ingesta hacia Google Cloud Storage (Landing/Bronze en formato Apache Parquet) y Cloud Pub/Sub (4 Tópicos Streaming)
-Caso: DataBank Metropolitan -> Lumina Bank (Escala Real: 9M Clientes + 6.36M PaySim)
+"""Ingesta al lago: sube los Parquet a Cloud Storage y publica eventos de muestra en Pub/Sub.
+
+Los cierres contables, su manifiesto y el calendario van al bucket Landing. Las fuentes descargadas,
+el core de clientes y los flujos de eventos van al bucket Bronze. Después publica una muestra en los
+cuatro tópicos de streaming.
+
+Uso:
+    python -m lumina.ingesta.cargar_lago
 """
 
 import json
@@ -27,7 +33,11 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 
 def asegurar_dimensiones_maestras_parquet():
-    """Genera los catálogos maestros dim_entidad (12) y dim_distrito (8) en Parquet ZSTD si no existen."""
+    """Genera los catálogos maestros dim_entidad (12 filas) y dim_distrito (8 filas) en Parquet ZSTD.
+
+    Returns:
+        Tupla (ruta_dim_entidad, ruta_dim_distrito).
+    """
     os.makedirs(DATA_GENERATE_DIR, exist_ok=True)
     ruta_ent = os.path.join(DATA_GENERATE_DIR, "dim_entidad_12.parquet")
     ruta_dis = os.path.join(DATA_GENERATE_DIR, "dim_distrito_8.parquet")
@@ -77,6 +87,11 @@ def asegurar_dimensiones_maestras_parquet():
 
 
 def subir_archivos_a_cloud_storage():
+    """Sube los Parquet locales a Landing y Bronze.
+
+    Antes elimina los CSV antiguos de ambos buckets para no duplicar espacio. Los archivos que no existen
+    en local se omiten.
+    """
     print("======================================================================")
     print(" 1. CARGANDO ARCHIVOS PARQUET A CLOUD STORAGE (LANDING & BRONZE)")
     print("======================================================================")
@@ -85,7 +100,6 @@ def subir_archivos_a_cloud_storage():
     b_landing = storage_client.bucket(BUCKET_LANDING)
     b_bronze = storage_client.bucket(BUCKET_BRONZE)
 
-    # Limpiar objetos CSV antiguos para no duplicar espacio
     for bucket in [b_landing, b_bronze]:
         for blob in storage_client.list_blobs(bucket):
             if blob.name.endswith(".csv"):
@@ -126,6 +140,13 @@ def subir_archivos_a_cloud_storage():
 
 
 def publicar_streaming_4_topicos(limite_eventos=50):
+    """Publica una muestra de eventos en los tópicos de transacciones, clics, ATM y GPS.
+
+    Usa entrega ordenada con el cliente o el cajero como ordering_key.
+
+    Args:
+        limite_eventos: Eventos por tópico; ATM se limita a 40.
+    """
     print("\n======================================================================")
     print(" 2. PUBLICANDO EVENTOS EN VIVO A LOS 4 TÓPICOS DE CLOUD PUB/SUB")
     print("======================================================================")

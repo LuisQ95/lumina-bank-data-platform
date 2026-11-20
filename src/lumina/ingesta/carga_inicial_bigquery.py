@@ -1,6 +1,10 @@
-"""Carga inicial de Bronze y Silver en BigQuery (9M clientes + 6.36M transacciones).
-Usa load_table_from_file con Parquet. La vista core_clientes_cdc_raw y la capa Gold
-se crean en lumina.batch.ejecutar_sql.
+"""Carga inicial de las capas Bronze y Silver en BigQuery.
+
+Carga 9 millones de clientes y 6.36 millones de transacciones con jobs de carga desde Parquet, que no
+tienen costo. La vista core_clientes_cdc_raw y la capa Gold se crean en lumina.batch.ejecutar_sql.
+
+Uso:
+    python -m lumina.ingesta.carga_inicial_bigquery
 """
 
 import os
@@ -15,17 +19,22 @@ client = bigquery.Client(project=PROJECT_ID)
 
 
 def cargar_parquet_a_bigquery(ruta_pq, dataset_id, tabla_id, partition_field=None, cluster_fields=None):
-    """Carga un archivo Apache Parquet en BigQuery mediante Batch Load Job (100% gratuito en GCP)"""
+    """Carga un Parquet en BigQuery con un job de carga, reemplazando la tabla.
+
+    Args:
+        ruta_pq: Archivo Parquet local.
+        dataset_id: Dataset destino.
+        tabla_id: Tabla destino.
+        partition_field: Columna de partición diaria, si corresponde.
+        cluster_fields: Columnas de clustering, si corresponde.
+    """
     table_ref = f"{PROJECT_ID}.{dataset_id}.{tabla_id}"
     job_config = bigquery.LoadJobConfig(
         source_format=bigquery.SourceFormat.PARQUET,
         write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
     )
     if partition_field:
-        job_config.time_partitioning = bigquery.TimePartitioning(
-            type_=bigquery.TimePartitioningType.DAY,
-            field=partition_field
-        )
+        job_config.time_partitioning = bigquery.TimePartitioning(type_=bigquery.TimePartitioningType.DAY, field=partition_field)
     if cluster_fields:
         job_config.clustering_fields = cluster_fields
 
@@ -38,84 +47,44 @@ def cargar_parquet_a_bigquery(ruta_pq, dataset_id, tabla_id, partition_field=Non
 
 
 def poblar_capa_bronze():
+    """Carga las fuentes crudas en bronze_banco: PaySim, clickstream, telemetría, GPS y cierres."""
     print("\n======================================================================")
     print(" 1. POBLANDO CAPA BRONZE EN BIGQUERY (`bronze_banco`)")
     print("======================================================================")
     ds = DATASETS["bronze"]
-
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_DOWNLOAD_DIR, "paysim_kaggle_dataset.parquet"),
-        ds, "tx_paysim_kaggle_raw"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "clickstream_app_web.parquet"),
-        ds, "clickstream_app_web_raw"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "telemetria_atms_iot.parquet"),
-        ds, "telemetria_atms_iot_raw"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "geolocalizacion_clientes_gps.parquet"),
-        ds, "geolocalizacion_gps_raw"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "cierres_contables_12_entidades.parquet"),
-        ds, "cierres_contables_batch_raw"
-    )
+    cargar_parquet_a_bigquery(os.path.join(DATA_DOWNLOAD_DIR, "paysim_kaggle_dataset.parquet"), ds, "tx_paysim_kaggle_raw")
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "clickstream_app_web.parquet"), ds, "clickstream_app_web_raw")
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "telemetria_atms_iot.parquet"), ds, "telemetria_atms_iot_raw")
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "geolocalizacion_clientes_gps.parquet"), ds, "geolocalizacion_gps_raw")
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "cierres_contables_12_entidades.parquet"), ds, "cierres_contables_batch_raw")
 
 
 def poblar_capa_silver():
+    """Carga las dimensiones conformadas y la tabla de hechos en silver_banco.
+
+    dim_cliente (9 M de clientes) queda clusterizada por cliente, distrito y entidad. fact_transaccion
+    (6.36 M de transacciones) queda particionada por fecha y clusterizada por cliente y distrito.
+    """
     print("\n======================================================================")
     print(" 2. POBLANDO CAPA SILVER CONFORMADA EN BIGQUERY (`silver_banco`)")
     print("======================================================================")
     ds = DATASETS["silver"]
-
-    # Los 9,000,000 de clientes activos conformados y clusterizados
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "core_clientes_12_entidades.parquet"),
-        ds, "dim_cliente",
-        cluster_fields=["id_cliente", "id_distrito", "id_entidad"]
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "dim_atm_catalogo.parquet"),
-        ds, "dim_atm",
-        cluster_fields=["id_atm", "id_distrito"]
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "dim_entidad_12.parquet"),
-        ds, "dim_entidad"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "dim_distrito_8.parquet"),
-        ds, "dim_distrito"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "calendario_eventos_festivos_2026.parquet"),
-        ds, "dim_calendario_eventos"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_DOWNLOAD_DIR, "sec_quarterly_financials_download.parquet"),
-        ds, "ext_sec_financials"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_DOWNLOAD_DIR, "google_trends_top_terms_download.parquet"),
-        ds, "ext_google_trends"
-    )
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_DOWNLOAD_DIR, "edi_market_reference_download.parquet"),
-        ds, "ext_edi_mercado"
-    )
-    # Las 6,362,620 transacciones PaySim enriquecidas, particionadas por fecha y clusterizadas
-    cargar_parquet_a_bigquery(
-        os.path.join(DATA_GENERATE_DIR, "transacciones_paysim_enriquecidas.parquet"),
-        ds, "fact_transaccion",
-        partition_field="timestamp",
-        cluster_fields=["id_cliente", "id_distrito"]
-    )
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "core_clientes_12_entidades.parquet"), ds, "dim_cliente",
+                              cluster_fields=["id_cliente", "id_distrito", "id_entidad"])
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "dim_atm_catalogo.parquet"), ds, "dim_atm",
+                              cluster_fields=["id_atm", "id_distrito"])
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "dim_entidad_12.parquet"), ds, "dim_entidad")
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "dim_distrito_8.parquet"), ds, "dim_distrito")
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "calendario_eventos_festivos_2026.parquet"), ds, "dim_calendario_eventos")
+    cargar_parquet_a_bigquery(os.path.join(DATA_DOWNLOAD_DIR, "sec_quarterly_financials_download.parquet"), ds, "ext_sec_financials")
+    cargar_parquet_a_bigquery(os.path.join(DATA_DOWNLOAD_DIR, "google_trends_top_terms_download.parquet"), ds, "ext_google_trends")
+    cargar_parquet_a_bigquery(os.path.join(DATA_DOWNLOAD_DIR, "edi_market_reference_download.parquet"), ds, "ext_edi_mercado")
+    cargar_parquet_a_bigquery(os.path.join(DATA_GENERATE_DIR, "transacciones_paysim_enriquecidas.parquet"), ds, "fact_transaccion",
+                              partition_field="timestamp", cluster_fields=["id_cliente", "id_distrito"])
 
 
 def main():
+    """Carga Bronze y luego Silver."""
     print("======================================================================")
     print(" CONSTRUYENDO LAKEHOUSE MEDALLION A ESCALA REAL (9M CLIENTES + 6.36M TX)")
     print("======================================================================")

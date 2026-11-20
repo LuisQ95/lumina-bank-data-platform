@@ -1,8 +1,8 @@
 {
   "proyecto_gcp": "lumina-bank-utec-2026",
   "region": "us-central1",
-  "generado_utc": "2026-11-06T04:23:06.552137+00:00",
-  "duracion_seg": 38.59,
+  "generado_utc": "2026-11-20T07:50:33.350339+00:00",
+  "duracion_seg": 40.9,
   "costo": {
     "facturacion_verificada": false,
     "nota": "Este reporte mide uso frente a cuotas gratuitas; la factura real se confirma en Cloud Billing.",
@@ -16,17 +16,17 @@
         "mb": 4.74
       },
       "lumina-bank-bronze-lumina-bank-utec-2026": {
-        "objetos": 12,
-        "mb": 479.45
+        "objetos": 28,
+        "mb": 481.79
       }
     },
-    "gcs_total_mb": 484.19,
-    "gcs_objetos": 15,
-    "bq_tablas_nativas": 32,
+    "gcs_total_mb": 486.53,
+    "gcs_objetos": 31,
+    "bq_tablas_nativas": 34,
     "bq_tablas_externas": 5,
     "bq_vistas": 5,
-    "bq_filas_tablas_nativas": 40022839,
-    "bq_almacenamiento_gib": 6.021,
+    "bq_filas_tablas_nativas": 40038313,
+    "bq_almacenamiento_gib": 6.024,
     "bq_inventario": [
       {
         "dataset": "bronze_banco",
@@ -349,6 +349,18 @@
         ]
       },
       {
+        "dataset": "silver_banco",
+        "tabla": "stream_decisiones_dataflow",
+        "tipo": "TABLE",
+        "filas": 15300,
+        "mb": 2.5,
+        "particion": "evento_ts",
+        "clustering": [
+          "id_distrito",
+          "decision"
+        ]
+      },
+      {
         "dataset": "gold_fraude",
         "tabla": "agg_fraude_distrito_dia",
         "tipo": "TABLE",
@@ -358,6 +370,15 @@
         "clustering": [
           "id_distrito"
         ]
+      },
+      {
+        "dataset": "gold_fraude",
+        "tabla": "agg_stream_distrito_1m",
+        "tipo": "TABLE",
+        "filas": 174,
+        "mb": 0.01,
+        "particion": null,
+        "clustering": null
       },
       {
         "dataset": "gold_fraude",
@@ -443,7 +464,7 @@
       "bigtable_instances": "API no habilitada",
       "compute_vms": 0,
       "dataproc_clusters": 0,
-      "redis_instances": "API no habilitada"
+      "redis_instances": 0
     }
   },
   "pilar1_spark": {
@@ -822,77 +843,72 @@
       }
     ]
   },
-  "pilar2_streaming": {
-    "ejecutado_utc": "2026-11-06T04:13:22.967727+00:00",
-    "run_id": "71bac5dafc36",
-    "suscripciones": {
-      "tx": "transacciones-sub-stream",
-      "clicks": "clicks-sub-stream",
-      "atm": "atm-sub-stream",
-      "geo": "geo-sub-stream"
+  "streaming_dataflow": {
+    "generado_utc": "2026-11-12T01:42:05.902182+00:00",
+    "despliegue": {
+      "inicio_utc": "2026-11-12T01:28:30Z",
+      "redis": "lumina-redis",
+      "vm": "lumina-redis-cli",
+      "job_nombre": "lumina-stream-redis",
+      "redis_host": "10.167.207.187",
+      "redis_port": 6379,
+      "job_id": "2026-11-11_17_35_02-11332378875092427656",
+      "run_id": "df202611120128",
+      "nota": "Reconstruido a mano: el script no dejó el archivo. run_id derivado de la hora de inicio; confirmar con SELECT DISTINCT run_id."
     },
-    "entrega_ordenada_activa": true,
-    "tasa_objetivo_tx_s": 50,
-    "streams_paralelos_tx": 8,
-    "tx_publicadas": 3121,
-    "segundos_publicacion": 62.63,
-    "tasa_real_tx_s": 49.8,
-    "trafico_prueba": {
-      "rafagas": 60,
-      "reintentos_duplicados": 61,
-      "fraudes_etiquetados_en_muestra": 60
+    "dataflow_job": {
+      "id": "2026-11-11_17_35_02-11332378875092427656",
+      "name": "lumina-stream-redis",
+      "currentState": "JOB_STATE_RUNNING",
+      "createTime": "2026-11-12T01:35:04.357843Z",
+      "type": "JOB_TYPE_STREAMING"
     },
-    "conteos": {
-      "geo_recibidos": 2998,
-      "atm_recibidos": 400,
-      "clicks_recibidos": 300,
-      "clicks_requieren_asesor": 117,
-      "tx_recibidas": 3121,
-      "APROBADA": 2995,
-      "REVISION_FRAUDE": 60,
-      "saltos_gps": 60,
-      "rafagas_vel_1m_3_o_mas": 40,
-      "duplicados_filtrados": 61,
-      "RECHAZADA_LIMITE": 5
+    "memorystore": {
+      "name": "projects/lumina-bank-utec-2026/locations/us-central1/instances/lumina-redis",
+      "tier": "BASIC",
+      "memorySizeGb": 1,
+      "redisVersion": "REDIS_7_2",
+      "state": "READY",
+      "host": "10.167.207.187",
+      "port": 6379,
+      "authorizedNetwork": "projects/lumina-bank-utec-2026/global/networks/default",
+      "connectMode": "DIRECT_PEERING"
     },
-    "tx_unicas_decididas": 3060,
-    "fuera_de_orden_por_cliente": 0,
-    "alertas_atm": 73,
-    "latencia_e2e_ms": {
-      "n": 3060,
-      "min": 251.0,
-      "p50": 278.0,
-      "p95": 434.05,
-      "p99": 962.41,
-      "max": 1474.0
-    },
-    "latencia_proceso_ms": {
-      "n": 3060,
-      "min": 0.02,
-      "p50": 0.07,
-      "p95": 0.14,
-      "p99": 0.28,
-      "max": 1.39
-    },
-    "sink_bigquery": {
-      "tabla": "lumina-bank-utec-2026.silver_banco.stream_decisiones",
-      "filas": 3060,
-      "microlotes": 8
-    },
-    "nosql_simulado": {
-      "filas_bigtable_local": 3060,
-      "claves_redis_local": 3245,
-      "archivos": [
-        "data/nosql_state/bigtable_perfil_cliente.json",
-        "data/nosql_state/redis_cache_snapshot.json"
-      ]
-    },
-    "nota_latencia": "E2E = reloj local al publicar hasta decisión tomada; incluye ida y vuelta Lima-us-central1 por internet. El consumidor es local."
+    "redis_cli": [
+      "PONG",
+      "db0:keys=12303,expires=12301,avg_ttl=43856990",
+      "total",
+      "300",
+      "requieren_asesor",
+      "117",
+      "73"
+    ],
+    "bigquery": {
+      "decisiones": {
+        "decisiones": 3060,
+        "tx_unicas": 3060,
+        "aprobadas": 2995,
+        "rechazadas_limite": 5,
+        "revision_fraude": 60,
+        "saltos_gps": 60,
+        "e2e_p50_ms": 3109,
+        "e2e_p95_ms": 15223,
+        "e2e_p99_ms": 16173,
+        "e2e_max_ms": 19380,
+        "redis_p50_ms": 21.079,
+        "redis_p99_ms": 81.342
+      },
+      "agregado_1m": {
+        "filas": 36,
+        "tx": 3060
+      },
+      "rechazos": {}
+    }
   },
   "consultas_gold": {
     "V1_fraude_por_distrito": {
-      "job_id": "32bba0f3-9890-4cae-ac1e-f9d3dac6041e",
-      "latencia_ms": 1668.5,
+      "job_id": "c24fc076-45a7-402c-af42-bcb18a8a5733",
+      "latencia_ms": 1377.2,
       "mb_procesados": 0.06,
       "filas": [
         {
@@ -962,8 +978,8 @@
       ]
     },
     "V2_liquidez_ultimo_plan": {
-      "job_id": "a1956abd-e8f8-4e85-8b4c-c0973a6e4408",
-      "latencia_ms": 1195.3,
+      "job_id": "4387707d-64bb-48ca-9cd3-8215da48b34a",
+      "latencia_ms": 1001.6,
       "mb_procesados": 0.02,
       "filas": [
         {
@@ -1057,8 +1073,8 @@
       ]
     },
     "V2_liquidez_resumen": {
-      "job_id": "7781902c-e366-40f9-83dd-c9f194fe8b28",
-      "latencia_ms": 1141.4,
+      "job_id": "ea951f1d-29e0-4d97-bcb5-9382db5b62ca",
+      "latencia_ms": 975.7,
       "mb_procesados": 0.0,
       "filas": [
         {
@@ -1070,8 +1086,8 @@
       ]
     },
     "V3_operacion_vs_sec": {
-      "job_id": "4992490d-3b66-4686-9acd-91b0604e15a9",
-      "latencia_ms": 1164.5,
+      "job_id": "5c900941-3c13-4c42-8bfa-9eacec1908f7",
+      "latencia_ms": 1081.7,
       "mb_procesados": 0.05,
       "filas": [
         {
@@ -1117,8 +1133,8 @@
       ]
     },
     "V4_salud_atm_y_cobertura": {
-      "job_id": "05a9ea13-53e0-46d5-b627-4dd0fa4be870",
-      "latencia_ms": 1392.7,
+      "job_id": "f9f3e38a-fb8e-4611-9b78-4effae661dcc",
+      "latencia_ms": 964.4,
       "mb_procesados": 0.02,
       "filas": [
         {
@@ -1196,8 +1212,8 @@
       ]
     },
     "Digital_friccion_por_edad": {
-      "job_id": "314acd87-ca33-4d39-af74-b55b8b2d5254",
-      "latencia_ms": 1191.9,
+      "job_id": "814ece04-7e6b-4743-9d57-14f883ca2aa2",
+      "latencia_ms": 931.2,
       "mb_procesados": 0.0,
       "filas": [
         {
@@ -1218,58 +1234,58 @@
       ]
     },
     "Stream_decisiones": {
-      "job_id": "5dd5b325-1e04-4b28-8b76-cbee85c2ec33",
-      "latencia_ms": 1098.3,
-      "mb_procesados": 0.08,
+      "job_id": "461423fb-e602-4183-9bc6-242ca5dae02f",
+      "latencia_ms": 1056.6,
+      "mb_procesados": 0.38,
       "filas": [
         {
           "decision": "APROBADA",
           "es_fraude_etiqueta": 0,
-          "tx": 2995,
-          "latencia_media_ms": 308.8
+          "tx": 14939,
+          "latencia_redis_media_ms": 23.91
         },
         {
           "decision": "RECHAZADA_LIMITE",
           "es_fraude_etiqueta": 0,
-          "tx": 5,
-          "latencia_media_ms": 270.6
+          "tx": 61,
+          "latencia_redis_media_ms": 14.86
         },
         {
           "decision": "REVISION_FRAUDE",
           "es_fraude_etiqueta": 1,
-          "tx": 60,
-          "latencia_media_ms": 305.9
+          "tx": 300,
+          "latencia_redis_media_ms": 25.59
         }
       ]
     }
   },
   "medicion_particion_y_clustering": {
     "A1_carga_sin_filtro": {
-      "job_id": "fd7ba824-a464-4a36-bae4-0c4211aeb956",
+      "job_id": "d317f00b-911b-45c0-8fd9-1c8336c05388",
       "mb_estimados_dry_run": 193.42,
       "mb_reales": 193.42,
       "mb_facturados": 194.0
     },
     "A2_carga_particion": {
-      "job_id": "f3965bda-5259-4fa9-8cf5-0f5d03dd33b7",
+      "job_id": "3bcba87f-7090-4622-9abf-fe9a7e5129b0",
       "mb_estimados_dry_run": 40.29,
       "mb_reales": 40.29,
       "mb_facturados": 41.0
     },
     "A3_carga_particion_y_distrito_2a_columna": {
-      "job_id": "144ca8c4-74a0-43b1-bbd2-0f37c1497683",
+      "job_id": "2d7a88c5-ee22-416b-824b-6016d3dcf803",
       "mb_estimados_dry_run": 40.29,
       "mb_reales": 40.29,
       "mb_facturados": 41.0
     },
     "B2_conformada_particion": {
-      "job_id": "14275887-0f77-46b7-bb85-c7036157493b",
+      "job_id": "6a603bb1-86d7-4f8c-b9be-82cdbedf87ac",
       "mb_estimados_dry_run": 40.29,
       "mb_reales": 40.29,
       "mb_facturados": 41.0
     },
     "B3_conformada_particion_y_distrito_1a_columna": {
-      "job_id": "762f90d2-4264-4bea-b890-5c3127134d0b",
+      "job_id": "f95242bf-fb7e-4386-ba34-f76ffbdfefc1",
       "mb_estimados_dry_run": 32.54,
       "mb_reales": 32.54,
       "mb_facturados": 33.0

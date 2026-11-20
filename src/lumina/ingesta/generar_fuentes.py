@@ -49,7 +49,7 @@ os.makedirs(DATA_GENERATE_DIR, exist_ok=True)
 
 
 def limpiar_archivos_antiguos():
-    """Elimina muestras pequeñas previas para dejar solo la data a escala real"""
+    """Vacía data_download y data_generate para dejar solo la data a escala real."""
     for folder in [DATA_DOWNLOAD_DIR, DATA_GENERATE_DIR]:
         for fname in os.listdir(folder):
             fpath = os.path.join(folder, fname)
@@ -57,11 +57,16 @@ def limpiar_archivos_antiguos():
                 os.remove(fpath)
 
 
-# ==============================================================================
-# BLOQUE A: DESCARGAS EN `data/data_download/`
-# ==============================================================================
-
 def descargar_sec_public_dataset(bq_client, n_limit=50000):
+    """Descarga estados financieros reales de bancos desde el dataset público SEC de BigQuery.
+
+    Args:
+        bq_client: Cliente de BigQuery.
+        n_limit: Máximo de filas.
+
+    Returns:
+        DataFrame con los registros de bancos y financieras (SIC 6021, 6022, 6029, 6035 y 6141).
+    """
     print(f"\n[DESCARGA 1/4] Extrayendo {n_limit:,} registros reales de SEC Public Dataset (BigQuery)...")
     sql = f"""
     SELECT
@@ -87,6 +92,18 @@ def descargar_sec_public_dataset(bq_client, n_limit=50000):
 
 
 def descargar_google_trends_dataset(bq_client, n_limit=50000):
+    """Descarga los términos más buscados de las últimas dos semanas desde Google Trends público.
+
+    El dataset es de Estados Unidos. La columna id_distrito es una asignación por rotación sin
+    significado geográfico; el pipeline SQL la descarta y no usa Trends para proyectar demanda en Lima.
+
+    Args:
+        bq_client: Cliente de BigQuery.
+        n_limit: Máximo de filas.
+
+    Returns:
+        DataFrame con fecha, mercado, término, puntaje y ranking.
+    """
     print(f"\n[DESCARGA 2/4] Extrayendo {n_limit:,} registros reales de Google Trends (BigQuery)...")
     sql = f"""
     SELECT
@@ -103,8 +120,6 @@ def descargar_google_trends_dataset(bq_client, n_limit=50000):
     LIMIT {n_limit}
     """
     df = bq_client.query(sql).to_dataframe()
-    # ADVERTENCIA: el dataset es de EE. UU.; este distrito es una asignación por rotación sin significado.
-    # El pipeline SQL lo descarta y no usa Trends para proyectar demanda en Lima.
     df["id_distrito"] = [DISTRITOS[i % len(DISTRITOS)] for i in range(len(df))]
     out_pq = os.path.join(DATA_DOWNLOAD_DIR, "google_trends_top_terms_download.parquet")
     df.to_parquet(out_pq, index=False, compression="zstd")
@@ -113,6 +128,11 @@ def descargar_google_trends_dataset(bq_client, n_limit=50000):
 
 
 def descargar_edi_market_reference():
+    """Genera una serie sintética de 1,826 días estilo EDI con precios, dividendos, tipo de cambio y tasa BCRP.
+
+    Returns:
+        Lista de fechas de la serie, en formato YYYY-MM-DD.
+    """
     print("\n[DESCARGA 3/4] Generando serie sintética de 5 años estilo EDI...")
     tickers = [
         ("BAP", "Credicorp Ltd.", "NYSE", 172.50),
@@ -122,7 +142,7 @@ def descargar_edi_market_reference():
         ("JPM", "JPMorgan Chase & Co.", "NYSE", 210.00),
         ("SPY", "SPDR S&P 500 ETF Trust", "NYSE", 580.10),
     ]
-    n_days = 1826  # 5 años en línea
+    n_days = 1826
     base_date = datetime(2021, 10, 26).date()
     fechas = [str(base_date + timedelta(days=d)) for d in range(n_days)]
 
@@ -151,9 +171,16 @@ def descargar_edi_market_reference():
 
 
 def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
-    """
-    Genera un dataset sintético con esquema y volumen de PaySim (6,362,620 filas) en `data_download`
-    y simultáneamente la tabla de hechos enriquecida con los 9,000,000 de clientes en `data_generate`.
+    """Genera las transacciones con esquema y volumen de PaySim y su versión enriquecida.
+
+    Escribe por lotes dos tablas: la cruda con las 11 columnas de PaySim en data_download, y la
+    enriquecida con cliente, entidad, distrito, canal y cajero en data_generate. Como en PaySim, la tasa
+    de fraude es cercana a 0.13 % y el fraude ocurre solo en TRANSFER y CASH_OUT. Las fechas cubren los
+    30 días desde el 2026-09-25 para el particionamiento diario.
+
+    Args:
+        total_tx: Total de transacciones.
+        batch_size: Filas por lote de escritura.
     """
     print(f"\n[DESCARGA 4/4 & CRUCE MAESTRO] Construyendo las {total_tx:,} transacciones de PaySim y cruzándolas con los 9,000,000 de clientes...")
     t0 = time.time()
@@ -168,7 +195,6 @@ def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
     canales_arr = np.array(CANALES)
     atms_arr = np.array([f"ATM-{i:04d}" for i in range(1, 401)])
 
-    # Fechas de los últimos 30 días para particionamiento diario
     base_ts = np.datetime64("2026-09-25T00:00:00")
 
     writer_raw = None
@@ -182,11 +208,10 @@ def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
         n = min(batch_size, total_tx - rows_written)
 
         steps = rng.integers(1, 744, size=n, dtype=np.int32)
-        is_fraud = (rng.random(n) < 0.0013).astype(np.int32)  # tasa similar a PaySim; etiqueta sintética
+        is_fraud = (rng.random(n) < 0.0013).astype(np.int32)
         total_fraudes += int(is_fraud.sum())
 
         type_idx = rng.choice(5, size=n, p=pesos_tipos)
-        # En PaySim el fraude ocurre en TRANSFER (3) y CASH_OUT (1)
         fraud_mask = is_fraud == 1
         type_idx[fraud_mask] = rng.choice([1, 3], size=int(fraud_mask.sum()))
         types = tipos_arr[type_idx]
@@ -203,14 +228,12 @@ def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
         new_dest = np.round(old_dest + amounts, 2)
         is_flagged = ((is_fraud == 1) & (amounts > 200000.0)).astype(np.int32)
 
-        # Clientes dentro del universo de 9,000,000 (1 .. 9,000,000)
         cli_nums = rng.integers(1, 9000001, size=n, dtype=np.int64)
         dest_nums = rng.integers(1, 9000001, size=n, dtype=np.int64)
 
         name_orig = pa.array([f"C{x}" for x in cli_nums], type=pa.string())
         name_dest = pa.array([f"M{x}" for x in dest_nums], type=pa.string())
 
-        # Tabla 1: PaySim Kaggle Raw (11 columnas exactas)
         tbl_raw = pa.table({
             "step": pa.array(steps, type=pa.int32()),
             "type": pa.array(types, type=pa.string()),
@@ -228,7 +251,6 @@ def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
             writer_raw = pq.ParquetWriter(out_raw_pq, tbl_raw.schema, compression="zstd")
         writer_raw.write_table(tbl_raw)
 
-        # Tabla 2: PaySim Enriquecida con las 5 llaves maestras de Lumina Bank
         id_cliente_arr = pa.array([f"LUM-{x:07d}" for x in cli_nums], type=pa.string())
         id_tx_arr = pa.array([f"TX-{rows_written + i + 1:07d}" for i in range(n)], type=pa.string())
         dist_idx = (cli_nums % 8).astype(np.int32)
@@ -291,13 +313,12 @@ def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
     print(f"  -> [OK] {out_enr_pq} ({total_tx:,} filas, {total_fraudes:,} fraudes, {os.path.getsize(out_enr_pq)/(1024**2):.1f} MB)")
 
 
-# ==============================================================================
-# BLOQUE B: SIMULACIÓN MASIVA EN `data/data_generate/`
-# ==============================================================================
-
 def simular_9_millones_clientes(total_clientes=9000000, batch_size=1500000):
-    """
-    Genera los 9,000,000 (9 millones) de clientes activos de las 12 entidades en los 8 distritos.
+    """Genera el core de 9 millones de clientes activos de las 12 entidades en los 8 distritos.
+
+    Args:
+        total_clientes: Total de clientes.
+        batch_size: Filas por lote de escritura.
     """
     print(f"\n[SIMULACIÓN 1/5] Generando los {total_clientes:,} (9 MILLONES) de clientes activos (12 Entidades, 8 Distritos)...")
     t0 = time.time()
@@ -363,7 +384,16 @@ def simular_9_millones_clientes(total_clientes=9000000, batch_size=1500000):
 
 
 def simular_clickstream_y_gps_masivo(n_clicks=1000000, n_gps=1000000):
-    """Genera 1,000,000 de eventos de Clickstream y 1,000,000 de pings GPS"""
+    """Genera los eventos de la app y la web y los pings GPS, con muestras JSON para Pub/Sub.
+
+    Los clientes de 62 años o más pasan más tiempo por pantalla y piden asesor con más frecuencia. Como
+    indica el caso, el 89 % de los pings está a menos de 8 km de un punto de atención, y el 1.5 % es un
+    salto a otro distrito.
+
+    Args:
+        n_clicks: Eventos de clickstream.
+        n_gps: Pings GPS.
+    """
     print(f"\n[SIMULACIÓN 2/5] Generando {n_clicks:,} eventos Clickstream y {n_gps:,} pings de Geolocalización GPS...")
 
     distritos_arr = np.array(DISTRITOS)
@@ -372,7 +402,6 @@ def simular_clickstream_y_gps_masivo(n_clicks=1000000, n_gps=1000000):
     disp_arr = np.array(["ANDROID", "IOS", "WEB_DESKTOP"])
     base_ts = np.datetime64("2026-09-25T00:00:00")
 
-    # 1. Clickstream (1,000,000 filas)
     cli_nums = rng.integers(1, 9000001, size=n_clicks, dtype=np.int64)
     edades = rng.integers(18, 85, size=n_clicks, dtype=np.int32)
     es_mayor = edades >= 62
@@ -398,17 +427,14 @@ def simular_clickstream_y_gps_masivo(n_clicks=1000000, n_gps=1000000):
     pq.write_table(tbl_clicks, out_clicks, compression="zstd")
     print(f"  -> [OK] {out_clicks} ({n_clicks:,} filas, {os.path.getsize(out_clicks)/(1024**2):.1f} MB)")
 
-    # Muestra JSON para Pub/Sub
     with open(os.path.join(DATA_GENERATE_DIR, "streaming_sample_clicks.json"), "w", encoding="utf-8") as f:
         json.dump(tbl_clicks.slice(0, 100).to_pylist(), f, default=str, ensure_ascii=False, indent=2)
 
-    # 2. Geolocalización GPS (1,000,000 filas)
     cli_g = rng.integers(1, 9000001, size=n_gps, dtype=np.int64)
     dist_hab_idx = (cli_g % 8).astype(np.int32)
     salto = (rng.random(n_gps) < 0.015).astype(np.int32)
     dist_act_idx = np.where(salto == 1, (dist_hab_idx + 2) % 8, dist_hab_idx)
 
-    # El caso indica que el 89% de los clientes vive/opera a menos de 8 km de un punto de atención
     en_8km = (rng.random(n_gps) < 0.89).astype(np.int32)
     dist_km = np.where(en_8km == 1, np.round(rng.uniform(0.2, 7.9, size=n_gps), 2), np.round(rng.uniform(8.1, 14.8, size=n_gps), 2))
     atm_ids = pa.array([f"ATM-{(x % 400) + 1:04d}" for x in cli_g], type=pa.string())
@@ -434,7 +460,12 @@ def simular_clickstream_y_gps_masivo(n_clicks=1000000, n_gps=1000000):
 
 
 def simular_red_atms_y_telemetria_iot(n_atms=400, n_lecturas=500000):
-    """Genera el catálogo de 400 cajeros ATMs en los 8 distritos y 500,000 lecturas de telemetría IoT cada 30s"""
+    """Genera el catálogo de cajeros y sus lecturas de telemetría IoT cada 30 segundos.
+
+    Args:
+        n_atms: Cajeros distribuidos en los 8 distritos.
+        n_lecturas: Lecturas de efectivo, temperatura y latencia de red.
+    """
     print(f"\n[SIMULACIÓN 3/5] Generando {n_atms} ATMs y {n_lecturas:,} lecturas de telemetría IoT cada 30s...")
 
     now_iso = datetime.now(timezone.utc)
@@ -475,7 +506,6 @@ def simular_red_atms_y_telemetria_iot(n_atms=400, n_lecturas=500000):
     with open(os.path.join(DATA_GENERATE_DIR, "streaming_sample_atm.json"), "w", encoding="utf-8") as f:
         json.dump(atms_dim[:100], f, default=str, ensure_ascii=False, indent=2)
 
-    # 500,000 lecturas continuas cada 30 segundos
     atm_idx = rng.integers(0, n_atms, size=n_lecturas)
     atm_ids_arr = np.array([a["id_atm"] for a in atms_dim])[atm_idx]
     dist_arr = np.array([a["id_distrito"] for a in atms_dim])[atm_idx]
@@ -504,9 +534,10 @@ def simular_red_atms_y_telemetria_iot(n_atms=400, n_lecturas=500000):
 
 
 def simular_cierres_contables_anuales_y_calendario():
-    """
-    Genera 1 año completo de cierres contables diarios (365 días x 12 bancos x 8 distritos x 4 productos = 140,160 registros)
-    + archivo _MANIFEST.json con firma SHA-256 + 5 años de calendario maestro (1,826 días).
+    """Genera un año de cierres contables, su manifiesto SHA-256 y el calendario de cinco años.
+
+    Los cierres son 365 días por 12 entidades, 8 distritos y 4 productos (140,160 filas). El calendario
+    tiene 1,826 días con quincenas, fines de mes, feriados y su factor de liquidez.
     """
     print("\n[SIMULACIÓN 4/5 & 5/5] Generando 140,160 Cierres Contables Batch + _MANIFEST.json y 1,826 días de Calendario...")
     productos = ["TRANSFERENCIAS_INMEDIATAS", "MICROCREDITOS_DIGITALES", "TARJETAS_CREDITO", "AHORRO_RENTABLE"]
@@ -558,7 +589,6 @@ def simular_cierres_contables_anuales_y_calendario():
         json.dump(manifest, f, ensure_ascii=False, indent=2)
     print(f"  -> [OK] {out_cierres} ({len(df_cierres):,} registros, {os.path.getsize(out_cierres)/(1024**2):.1f} MB) + SHA-256")
 
-    # Calendario de 5 años (1,826 días)
     cal_base = datetime(2021, 10, 26).date()
     calendario = []
     for d in range(1826):
@@ -584,6 +614,7 @@ def simular_cierres_contables_anuales_y_calendario():
 
 
 def main():
+    """Descarga las fuentes públicas y genera todas las fuentes sintéticas en orden."""
     print("======================================================================")
     print(" GENERACIÓN MASIVA A ESCALA DE LA PRESENTACIÓN (9M CLIENTES + 6.36M TX)")
     print("======================================================================")

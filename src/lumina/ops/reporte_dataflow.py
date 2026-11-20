@@ -23,12 +23,31 @@ ZONA = "us-central1-a"
 
 
 def gcloud(*args, timeout=120):
+    """Ejecuta gcloud en el proyecto sin entrada interactiva.
+
+    Args:
+        *args: Argumentos de gcloud.
+        timeout: Segundos máximos de espera.
+
+    Returns:
+        Tupla (código_de_salida, stdout, stderr).
+    """
     r = subprocess.run([GCLOUD, *args, f"--project={PROJECT_ID}", "--quiet"], capture_output=True, text=True,
                        encoding="utf-8", errors="replace", stdin=subprocess.DEVNULL, timeout=timeout)
     return r.returncode, r.stdout.strip(), r.stderr.strip()
 
 
 def bigquery_evidencia(run_id):
+    """Mide en BigQuery las decisiones, latencias, agregados y rechazos de una corrida.
+
+    La tabla de rechazos solo existe si hubo algún mensaje inválido; si no existe, se informa vacía.
+
+    Args:
+        run_id: Identificador de la corrida de Dataflow.
+
+    Returns:
+        Diccionario con `decisiones`, `agregado_1m` y `rechazos`.
+    """
     bq = bigquery.Client(project=PROJECT_ID, location=REGION)
     cfg = bigquery.QueryJobConfig(maximum_bytes_billed=1024**3, query_parameters=[bigquery.ScalarQueryParameter("r", "STRING", run_id)])
     q = f"""
@@ -48,11 +67,12 @@ def bigquery_evidencia(run_id):
         q = f"SELECT origen, COUNT(*) AS n FROM `{PROJECT_ID}.silver_banco.stream_rechazos` WHERE run_id = @r GROUP BY origen"
         out["rechazos"] = {r["origen"]: r["n"] for r in bq.query(q, job_config=cfg).result()}
     except Exception:
-        out["rechazos"] = {}  # la tabla solo existe si hubo algún rechazo
+        out["rechazos"] = {}
     return out
 
 
 def main():
+    """Junta el estado del job, sus contadores, Memorystore, redis-cli y BigQuery en un solo reporte."""
     ruta = os.path.join(REPORTES_DIR, "estado_despliegue_dataflow.json")
     with open(ruta, encoding="utf-8-sig") as f:
         estado = json.load(f)

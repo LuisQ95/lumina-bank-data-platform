@@ -213,7 +213,8 @@ Cada consulta es parametrizada y tiene un tope de 200 MB facturados. La API vali
 4. Pulsa "Reenviar la misma": Redis descarta el duplicado y BigQuery sigue con una sola fila.
 5. Pulsa "Ráfaga de 4": sube la velocidad del cliente y el riesgo.
 6. Muestra el Job Graph en Dataflow y las tablas Gold en la sección 4 de la página.
-7. Al terminar, ejecuta el paso 8e.
+7. Abre un endpoint en el navegador, por ejemplo `/api/liquidez/plan?distrito=Lince`, para mostrar el JSON que recibe cualquier tablero o modelo.
+8. Al terminar, ejecuta el paso 8e.
 
 ## 6. Pruebas
 

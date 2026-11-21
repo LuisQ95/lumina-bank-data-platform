@@ -101,7 +101,7 @@ def test_alerta_atm():
 
 def test_grafo_completo_en_runner_local(tmp_path, monkeypatch):
     """El grafo completo decide, rechaza, agrega por ventana y escribe el estado en Redis."""
-    monkeypatch.setattr(df, "crear_cliente", lambda h, p: fakeredis.FakeRedis(server=SERVIDOR, decode_responses=True))
+    monkeypatch.setattr(df, "crear_cliente", lambda _host, _puerto: fakeredis.FakeRedis(server=SERVIDOR, decode_responses=True))
     verificador = fakeredis.FakeRedis(server=SERVIDOR, decode_responses=True)
     verificador.flushall()
 

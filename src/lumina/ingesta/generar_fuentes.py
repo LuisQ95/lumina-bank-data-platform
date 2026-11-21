@@ -87,7 +87,7 @@ def descargar_sec_public_dataset(bq_client, n_limit=50000):
     df = bq_client.query(sql).to_dataframe()
     out_pq = os.path.join(DATA_DOWNLOAD_DIR, "sec_quarterly_financials_download.parquet")
     df.to_parquet(out_pq, index=False, compression="zstd")
-    print(f"  -> [OK] {out_pq} ({len(df):,} registros reales SEC, {os.path.getsize(out_pq)/1024:.1f} KB)")
+    print(f"  -> [OK] {out_pq} ({len(df):,} registros reales SEC, {os.path.getsize(out_pq) / 1024:.1f} KB)")
     return df
 
 
@@ -123,7 +123,7 @@ def descargar_google_trends_dataset(bq_client, n_limit=50000):
     df["id_distrito"] = [DISTRITOS[i % len(DISTRITOS)] for i in range(len(df))]
     out_pq = os.path.join(DATA_DOWNLOAD_DIR, "google_trends_top_terms_download.parquet")
     df.to_parquet(out_pq, index=False, compression="zstd")
-    print(f"  -> [OK] {out_pq} ({len(df):,} tendencias reales Google Trends, {os.path.getsize(out_pq)/1024:.1f} KB)")
+    print(f"  -> [OK] {out_pq} ({len(df):,} tendencias reales Google Trends, {os.path.getsize(out_pq) / 1024:.1f} KB)")
     return df
 
 
@@ -166,7 +166,7 @@ def descargar_edi_market_reference():
     df = pd.DataFrame(registros)
     out_pq = os.path.join(DATA_DOWNLOAD_DIR, "edi_market_reference_download.parquet")
     df.to_parquet(out_pq, index=False, compression="zstd")
-    print(f"  -> [OK] {out_pq} ({len(df):,} cotizaciones bursátiles de 5 años, {os.path.getsize(out_pq)/1024:.1f} KB)")
+    print(f"  -> [OK] {out_pq} ({len(df):,} cotizaciones bursátiles de 5 años, {os.path.getsize(out_pq) / 1024:.1f} KB)")
     return fechas
 
 
@@ -287,7 +287,7 @@ def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
         if len(sample_json) == 0:
             for k in range(100):
                 sample_json.append({
-                    "id_transaccion": f"TX-{k+1:07d}",
+                    "id_transaccion": f"TX-{k + 1:07d}",
                     "id_cliente": f"LUM-{int(cli_nums[k]):07d}",
                     "id_entidad": str(entidades_arr[ent_idx[k]]),
                     "id_distrito": str(distritos_arr[dist_idx[k]]),
@@ -309,8 +309,8 @@ def generar_y_enriquecer_paysim_completo(total_tx=6362620, batch_size=1000000):
         json.dump(sample_json, f, ensure_ascii=False, indent=2)
 
     el = round(time.time() - t0, 1)
-    print(f"  -> [OK] {out_raw_pq} ({total_tx:,} filas, {os.path.getsize(out_raw_pq)/(1024**2):.1f} MB) en {el}s")
-    print(f"  -> [OK] {out_enr_pq} ({total_tx:,} filas, {total_fraudes:,} fraudes, {os.path.getsize(out_enr_pq)/(1024**2):.1f} MB)")
+    print(f"  -> [OK] {out_raw_pq} ({total_tx:,} filas, {os.path.getsize(out_raw_pq) / (1024**2):.1f} MB) en {el}s")
+    print(f"  -> [OK] {out_enr_pq} ({total_tx:,} filas, {total_fraudes:,} fraudes, {os.path.getsize(out_enr_pq) / (1024**2):.1f} MB)")
 
 
 def simular_9_millones_clientes(total_clientes=9000000, batch_size=1500000):
@@ -380,7 +380,7 @@ def simular_9_millones_clientes(total_clientes=9000000, batch_size=1500000):
 
     writer.close()
     el = round(time.time() - t0, 1)
-    print(f"  -> [OK] {out_pq} ({total_clientes:,} clientes, {os.path.getsize(out_pq)/(1024**2):.1f} MB) en {el}s")
+    print(f"  -> [OK] {out_pq} ({total_clientes:,} clientes, {os.path.getsize(out_pq) / (1024**2):.1f} MB) en {el}s")
 
 
 def simular_clickstream_y_gps_masivo(n_clicks=1000000, n_gps=1000000):
@@ -425,7 +425,7 @@ def simular_clickstream_y_gps_masivo(n_clicks=1000000, n_gps=1000000):
     })
     out_clicks = os.path.join(DATA_GENERATE_DIR, "clickstream_app_web.parquet")
     pq.write_table(tbl_clicks, out_clicks, compression="zstd")
-    print(f"  -> [OK] {out_clicks} ({n_clicks:,} filas, {os.path.getsize(out_clicks)/(1024**2):.1f} MB)")
+    print(f"  -> [OK] {out_clicks} ({n_clicks:,} filas, {os.path.getsize(out_clicks) / (1024**2):.1f} MB)")
 
     with open(os.path.join(DATA_GENERATE_DIR, "streaming_sample_clicks.json"), "w", encoding="utf-8") as f:
         json.dump(tbl_clicks.slice(0, 100).to_pylist(), f, default=str, ensure_ascii=False, indent=2)
@@ -453,7 +453,7 @@ def simular_clickstream_y_gps_masivo(n_clicks=1000000, n_gps=1000000):
     })
     out_gps = os.path.join(DATA_GENERATE_DIR, "geolocalizacion_clientes_gps.parquet")
     pq.write_table(tbl_gps, out_gps, compression="zstd")
-    print(f"  -> [OK] {out_gps} ({n_gps:,} filas, {os.path.getsize(out_gps)/(1024**2):.1f} MB)")
+    print(f"  -> [OK] {out_gps} ({n_gps:,} filas, {os.path.getsize(out_gps) / (1024**2):.1f} MB)")
 
     with open(os.path.join(DATA_GENERATE_DIR, "streaming_sample_geo.json"), "w", encoding="utf-8") as f:
         json.dump(tbl_gps.slice(0, 100).to_pylist(), f, default=str, ensure_ascii=False, indent=2)
@@ -530,7 +530,7 @@ def simular_red_atms_y_telemetria_iot(n_atms=400, n_lecturas=500000):
     })
     out_iot = os.path.join(DATA_GENERATE_DIR, "telemetria_atms_iot.parquet")
     pq.write_table(tbl_iot, out_iot, compression="zstd")
-    print(f"  -> [OK] {out_iot} ({n_lecturas:,} lecturas IoT + {n_atms} ATMs, {os.path.getsize(out_iot)/(1024**2):.1f} MB)")
+    print(f"  -> [OK] {out_iot} ({n_lecturas:,} lecturas IoT + {n_atms} ATMs, {os.path.getsize(out_iot) / (1024**2):.1f} MB)")
 
 
 def simular_cierres_contables_anuales_y_calendario():
@@ -587,7 +587,7 @@ def simular_cierres_contables_anuales_y_calendario():
     }
     with open(os.path.join(DATA_GENERATE_DIR, "cierres_contables_12_entidades_MANIFEST.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
-    print(f"  -> [OK] {out_cierres} ({len(df_cierres):,} registros, {os.path.getsize(out_cierres)/(1024**2):.1f} MB) + SHA-256")
+    print(f"  -> [OK] {out_cierres} ({len(df_cierres):,} registros, {os.path.getsize(out_cierres) / (1024**2):.1f} MB) + SHA-256")
 
     cal_base = datetime(2021, 10, 26).date()
     calendario = []

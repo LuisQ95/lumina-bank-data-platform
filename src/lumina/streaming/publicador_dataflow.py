@@ -25,7 +25,7 @@ import pyarrow.parquet as pq
 from google.api_core.exceptions import AlreadyExists
 from google.cloud import pubsub_v1, storage
 
-from lumina.config import BUCKET_BRONZE, DATA_GENERATE_DIR, PROJECT_ID, REPORTES_DIR, TOPICS
+from lumina.config import BUCKET_BRONZE, DATA_GENERATE_DIR, DATAFLOW_SUBSCRIPTIONS, PROJECT_ID, REPORTES_DIR, TOPICS
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -111,16 +111,16 @@ def preparar(n_tx):
     Args:
         n_tx: Transacciones de la muestra; define qué clientes tienen perfil.
     """
-    subscriber =pubsub_v1.SubscriberClient()
-    for topico in TOPICS.values():
-        path = subscriber.subscription_path(PROJECT_ID, f"{topico}-sub-dataflow")
+    subscriber = pubsub_v1.SubscriberClient()
+    for clave, sub_id in DATAFLOW_SUBSCRIPTIONS.items():
+        path = subscriber.subscription_path(PROJECT_ID, sub_id)
         try:
             subscriber.create_subscription(request={
-                "name": path, "topic": f"projects/{PROJECT_ID}/topics/{topico}", "ack_deadline_seconds": 60,
+                "name": path, "topic": f"projects/{PROJECT_ID}/topics/{TOPICS[clave]}", "ack_deadline_seconds": 60,
             })
-            print(f"  [CREADA] {topico}-sub-dataflow")
+            print(f"  [CREADA] {sub_id}")
         except AlreadyExists:
-            print(f"  [YA EXISTE] {topico}-sub-dataflow")
+            print(f"  [YA EXISTE] {sub_id}")
     subscriber.close()
 
     datos = preparar_eventos(n_tx)

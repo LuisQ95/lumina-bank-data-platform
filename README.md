@@ -7,6 +7,8 @@ Plataforma analítica para la fusión de 12 entidades financieras (caso DataBank
 - **Exposición:** API y página web en Cloud Run que publica transacciones reales en Pub/Sub y expone las decisiones y las tablas Gold.
 - **FinOps:** los servicios que cobran por hora se crean y eliminan con un solo comando; Cloud Run escala a cero.
 
+![Arquitectura final de producción](docs/arquitectura/arquitectura_final.png)
+
 ![Pipeline de Dataflow con Memorystore](docs/arquitectura/arquitectura_dataflow_memorystore.png)
 
 **Equipo:** Enzo Ochoa, Luis Quispe y Roberto Mendez. Maestría en Ciencia de Datos, UTEC, curso de Big Data (2026).
@@ -150,6 +152,12 @@ Dataflow y Memorystore cuestan unos USD 0.31 por hora mientras existen. Se crean
 | 8e | `.\infra\apagar_y_verificar.ps1` | Desconecta la API de la VPC, cancela el job, elimina Memorystore y la VM, y verifica que no quede nada cobrando |
 
 Si el paso 8b falla, ejecuta 8e de inmediato para no seguir pagando.
+
+Para revisar las claves que Dataflow escribe en Memorystore, ejecuta las consultas de `infra/redis_evidencia.sh` en la VM, con la IP de Redis que guarda `reports/estado_despliegue_dataflow.json`:
+
+```powershell
+gcloud compute ssh lumina-redis-cli --zone us-central1-a --command "bash -s -- <IP_REDIS>" < infra/redis_evidencia.sh
+```
 
 ### 4.4 API y página web en Cloud Run
 

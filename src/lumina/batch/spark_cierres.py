@@ -223,7 +223,7 @@ def cruzar_tx_clientes(spark, ruta_tx, ruta_clientes):
         "id_cliente", F.col("id_distrito").alias("distrito_habitual"), "segmento", "limite_diario_pen"
     )
     cruce = tx.join(clientes, "id_cliente", "left")
-    resumen = (
+    return (
         cruce.groupBy("segmento", "id_distrito")
         .agg(
             F.count("*").alias("transacciones"),
@@ -235,7 +235,6 @@ def cruzar_tx_clientes(spark, ruta_tx, ruta_clientes):
         )
         .orderBy("segmento", "id_distrito")
     )
-    return resumen
 
 
 def guardar_parquet(df_pandas, ruta):
